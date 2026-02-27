@@ -1,0 +1,41 @@
+<form method="POST" action="/tracks">
+
+  <div>
+    <label>Title</label>
+    <input type="text" name="title" required>
+  </div>
+
+  <div>
+    <label>Artist</label>
+    <input type="text" name="artist" required>
+  </div>
+
+  <div>
+    <label>BPM</label>
+    <input type="number" name="bpm" step="0.1" required>
+  </div>
+
+  <div>
+    <label>Key</label>
+    <input type="text" name="key" required>
+  </div>
+
+  <div>
+    <label>Energy (1-10)</label>
+    <input type="number" name="energy" min="1" max="10" required>
+  </div>
+
+  <div>
+    <label>Genre</label>
+    <select name="genre" required>
+      <option value="trap">trap</option>
+      <option value="drill">drill</option>
+      <option value="rage">rage</option>
+      <option value="rnb">rnb</option>
+      <option value="boom_bap">boom_bap</option>
+      <option value="lofi">lofi</option>
+    </select>
+  </div>
+
+  <button type="submit">保存</button>
+</form>

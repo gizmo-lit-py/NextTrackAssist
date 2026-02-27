@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <title>NextTrack Recommendations</title>
+    </head>
+    <body>
+
+        <h1>基準曲</h1>
+        <p>
+            {{ base_track["title"] }}
+            (BPM: {{ base_track["bpm"] }}
+            KEY: {{ base_track["key"] }}
+            ENERGY: {{ base_track["energy"] }})
+        </p>
+
+        <h2>おすすめTOP5</h2>
+
+        {% for track in recommendations %}
+          <div>
+            <h3>{{ track.title }}</h3>
+            <p>総合スコア: {{ track.total_score }}</p>
+
+            <p>BPM: {{ track.bpm_score }} ({{ track.bpm_reason }})</p>
+            <p>Key: {{ track.key_score }} [{{ track.key_label }}]</p>
+            <p>Energy: {{ track.energy_score }} ({{ track.energy_reason }})</p>
+          </div>
+        {% endfor %}
+    </body>
+</html>

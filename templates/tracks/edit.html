@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>曲を編集</title>
+</head>
+<body>
+    <h1>曲を編集</h1>
+
+    <form action="/tracks/{{ track['id'] }}/update" method="POST">
+        <div>
+            <label>タイトル</label>
+            <input type="text" name="title" value="{{ track['title'] }}" required>
+        </div>
+
+        <div>
+            <label>アーティスト</label>
+            <input type="text" name="artist" value="{{ track['artist'] }}" required>
+        </div>
+
+        <div>
+            <label>BPM</label>
+            <input type="number" name="bpm" value="{{ track['bpm'] }}" min="1" required>
+        </div>
+
+        <div>
+            <label>Key（Camelot）</label>
+            <input type="text" name="key" value="{{ track['key'] }}" required>
+        </div>
+
+        <div>
+            <label>Energy（1〜10）</label>
+            <input type="number" name="energy" value="{{ track['energy'] }}" min="1" max="10" required>
+        </div>
+
+        <div>
+            <label>ジャンル</label>
+            <input type="text" name="genre" value="{{ track['genre'] }}">
+        </div>
+
+        <button type="submit">更新</button>
+    </form>
+
+    <p>
+        <a href="/tracks/{{ track['id'] }}">詳細に戻る</a>
+        |
+        <a href="/">一覧に戻る</a>
+    </p>
+</body>
+</html>

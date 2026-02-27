@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <title>詳細</title>
+    </head>
+    <body>
+        <h1>{{ track["title"] }}</h1>
+        <p>Artist: {{ track["artist"] }}</p>
+        <p>Bpm: {{ track["bpm"] }}</p>
+        <p>Key: {{ track["key"] }}</p>
+        <p>Energy: {{ track["energy"] }}</p>
+        <p>Genre: {{ track["genre"] }}</p>
+        <p>Mix Window (sec): {{ track["mix_window_sec"] }}</p>
+        <p>Created At: {{ track["created_at"] }}</p>
+
+        <p>
+            <a href="/tracks/{{ track['id'] }}/recommend">
+                この曲を基準にレコメンド
+            </a>
+        </p>
+
+        <a href="/tracks/{{ track['id'] }}/edit">編集</a>
+
+        <form method="POST" action="/tracks/{{ track['id'] }}/delete">
+            <button type="submit">削除</button>
+        </form>
+
+
+    </body>
+</html>
