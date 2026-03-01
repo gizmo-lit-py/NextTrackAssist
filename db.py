@@ -1,45 +1,40 @@
-import sqlite3
-from pathlib import Path
+import os
+from dotenv import load_dotenv
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, declarative_base
 
-# データベースファイルの場所
-BASE_DIR = Path(__file__).resolve().parent
-DB_PATH = BASE_DIR / "app.db"
+# ==============================
+# 環境変数読み込み
+# ==============================
 
-def get_connection():
-    """DB接続を返す"""
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
+load_dotenv()
 
+DATABASE_URL = os.getenv("DATABASE_URL")
 
-def init_db():
-    """テーブル作成"""
-    conn = get_connection()
-    cursor = conn.cursor()
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL is not set")
 
-    cursor.execute("""
-CREATE TABLE IF NOT EXISTS tracks (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title TEXT NOT NULL,
-    artist TEXT NOT NULL,
-    bpm REAL NOT NULL,
-    key TEXT NOT NULL,
-    energy INTEGER NOT NULL CHECK (energy BETWEEN 1 AND 10),
-    genre TEXT NOT NULL CHECK (
-        genre IN (
-            'trap',
-            'drill',
-            'rage',
-            'rnb',
-            'boom_bap',
-            'lofi'
-        )
-    ),
-    mix_window_sec INTEGER DEFAULT 120,
-    created_at TEXT NOT NULL
-);
-""")
-    
-    conn.commit()
-    conn.close()
+# ==============================
+# Engine設定（本番想定）
+# ==============================
 
+engine = create_engine(
+    DATABASE_URL,
+    pool_pre_ping=True  # 接続切れ自動検知
+)
+
+# ==============================
+# Session設定（実務標準）
+# ==============================
+
+SessionLocal = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=engine
+)
+
+# ==============================
+# Base
+# ==============================
+
+Base = declarative_base()

@@ -1,147 +1,189 @@
-# ===============================
-# スコア設定（変更可能エリア）
-# ===============================
+# ==========================================
+# NextTrackAssist - Score Engine (Final)
+# ==========================================
 
-BPM_WEIGHTS = 0.4
-KEY_WEIGHTS = 0.4
-ENERGY_WEIGHTS = 0.2
 
-KEY_LABELS = {
-    100: "MATCH",
-    90: "ADJ",
-    85: "REL",
-    40: "NG"
+# ==============================
+# 定数（デフォルト重み）
+# ==============================
+
+DEFAULT_WEIGHTS = {
+    "bpm": 0.70,
+    "energy": 0.20,
+    "key": 0.10
 }
 
 
-# ===============================
+# ==============================
 # BPMスコア
-# ===============================
+# ==============================
 
-def calc_bpm_score(base_bpm, cand_bpm):
-
-    base_bpm = int(base_bpm)
-    cand_bpm = int(cand_bpm)
+def calc_bpm_score(base_bpm: int, cand_bpm: int):
+    if not isinstance(base_bpm, int) or not isinstance(cand_bpm, int):
+        raise ValueError("BPM must be integer")
 
     diff = abs(base_bpm - cand_bpm)
 
     if diff <= 2:
-        return 100, f"差分{diff} → ほぼ一致"
-    elif diff <= 5:
-        return 80, f"差分{diff} → 許容範囲"
-    elif diff <= 10:
-        return 50, f"差分{diff} → やや離れている"
+        score = 100
+    elif diff == 3:
+        score = 90
+    elif diff == 4:
+        score = 80
+    elif diff == 5:
+        score = 70
+    elif diff == 6:
+        score = 60
+    elif diff == 7:
+        score = 40
+    elif diff == 8:
+        score = 20
+    elif diff == 9:
+        score = 5
     else:
-        return 20, f"差分{diff} → 変化大"
+        score = 0
+
+    return score, diff
 
 
-# ===============================
+# ==============================
 # Energyスコア
-# ===============================
+# ==============================
 
-def calc_energy_score(base_energy, cand_energy):
+def calc_energy_score(base_energy: int, cand_energy: int):
+    if not isinstance(base_energy, int) or not isinstance(cand_energy, int):
+        raise ValueError("Energy must be integer")
 
-    base_energy = int(base_energy)
-    cand_energy = int(cand_energy)
+    if not (1 <= base_energy <= 10 and 1 <= cand_energy <= 10):
+        raise ValueError("Energy must be between 1 and 10")
 
     diff = abs(base_energy - cand_energy)
 
-    if diff <= 1:
-        return 100, f"差分{diff} → 流れ維持"
+    if diff == 0:
+        score = 100
+    elif diff == 1:
+        score = 95
     elif diff == 2:
-        return 70, f"差分{diff} → やや変化"
+        score = 85
+    elif diff == 3:
+        score = 70
+    elif diff == 4:
+        score = 50
+    elif diff == 5:
+        score = 30
     else:
-        return 40, f"差分{diff} → 変化大"
+        score = 10
+
+    return score
 
 
-# ===============================
-# Keyスコア
-# ===============================
+# ==============================
+# Camelotキー処理
+# ==============================
 
-def calc_key_score(base_key, cand_key):
+def parse_camelot(key: str):
+    if not isinstance(key, str):
+        raise ValueError("Camelot key must be string")
 
-    base_key = str(base_key)
-    cand_key = str(cand_key)
+    key = key.strip().upper()
 
-    if base_key == cand_key:
-        return 100, KEY_LABELS[100]
+    if len(key) < 2:
+        raise ValueError("Invalid Camelot key format")
 
-    base_number = int(base_key[:-1])
-    base_letter = base_key[-1]
+    number_part = key[:-1]
+    letter_part = key[-1]
 
-    cand_number = int(cand_key[:-1])
-    cand_letter = cand_key[-1]
+    if not number_part.isdigit():
+        raise ValueError("Camelot number must be numeric")
 
-    is_adjacent_normal = abs(base_number - cand_number) == 1
-    is_adjacent_wrap = (
-        (base_number == 1 and cand_number == 12) or
-        (base_number == 12 and cand_number == 1)
-    )
+    number = int(number_part)
 
-    if base_letter == cand_letter and (is_adjacent_normal or is_adjacent_wrap):
-        return 90, KEY_LABELS[90]
+    if number < 1 or number > 12:
+        raise ValueError("Camelot number must be between 1 and 12")
 
-    if base_number == cand_number and base_letter != cand_letter:
-        return 85, KEY_LABELS[85]
+    if letter_part not in ("A", "B"):
+        raise ValueError("Camelot letter must be A or B")
 
-    return 40, KEY_LABELS[40]
+    return number, letter_part
 
 
-# ===============================
+def is_adjacent(n1: int, n2: int):
+    # ±1循環（12→1含む）
+    return (n1 - n2) % 12 in (1, 11)
+
+
+def calc_key_score(base_key: str, cand_key: str):
+    n1, l1 = parse_camelot(base_key)
+    n2, l2 = parse_camelot(cand_key)
+
+    if n1 == n2 and l1 == l2:
+        return 100
+
+    if l1 == l2 and is_adjacent(n1, n2):
+        return 95
+
+    if n1 == n2 and l1 != l2:
+        return 90
+
+    if l1 != l2 and is_adjacent(n1, n2):
+        return 80
+
+    return 30
+
+
+# ==============================
 # 総合スコア
-# ===============================
+# ==============================
 
-def calc_total_score(bpm_score, key_score, energy_score):
+def calc_total_score(base: dict, cand: dict, weights: dict = DEFAULT_WEIGHTS):
 
-    bpm_score = int(bpm_score)
-    key_score = int(key_score)
-    energy_score = int(energy_score)
+    required_fields = ["bpm", "energy", "key"]
+
+    for field in required_fields:
+        if field not in base or field not in cand:
+            raise ValueError(f"Missing required field: {field}")
+
+    bpm_score, bpm_diff = calc_bpm_score(base["bpm"], cand["bpm"])
+    energy_score = calc_energy_score(base["energy"], cand["energy"])
+    key_score = calc_key_score(base["key"], cand["key"])
+
+    bpm_w = weights.get("bpm", DEFAULT_WEIGHTS["bpm"])
+    energy_w = weights.get("energy", DEFAULT_WEIGHTS["energy"])
+    key_w = weights.get("key", DEFAULT_WEIGHTS["key"])
+
+    if round(bpm_w + energy_w + key_w, 5) != 1.0:
+        raise ValueError("Weights must sum to 1.0")
 
     total = (
-        bpm_score * BPM_WEIGHTS
-        + key_score * KEY_WEIGHTS
-        + energy_score * ENERGY_WEIGHTS
-    )
-
-    return int(total)
-
-
-# ===============================
-# 総合マッチ計算
-# ===============================
-
-def calculate_match_score(base_track, cand_track):
-
-    bpm_score, bpm_reason = calc_bpm_score(
-        base_track["bpm"],
-        cand_track["bpm"]
-    )
-
-    key_score, key_label = calc_key_score(
-        base_track["key"],
-        cand_track["key"]
-    )
-
-    energy_score, energy_reason = calc_energy_score(
-        base_track["energy"],
-        cand_track["energy"]
-    )
-
-    total_score = calc_total_score(
-        bpm_score,
-        key_score,
-        energy_score
+        bpm_score * bpm_w +
+        energy_score * energy_w +
+        key_score * key_w
     )
 
     return {
+        "bpm_diff": bpm_diff,
         "bpm_score": bpm_score,
-        "bpm_reason": bpm_reason,
-
-        "key_score": key_score,
-        "key_label": key_label,
-
         "energy_score": energy_score,
-        "energy_reason": energy_reason,
-
-        "total_score": total_score
+        "key_score": key_score,
+        "total_score": round(total, 2)
     }
+
+
+# ==============================
+# 単体テスト用
+# ==============================
+
+if __name__ == "__main__":
+    base_track = {
+        "bpm": 140,
+        "energy": 8,
+        "key": "8A"
+    }
+
+    candidate = {
+        "bpm": 146,
+        "energy": 7,
+        "key": "9A"
+    }
+
+    print(calc_total_score(base_track, candidate))

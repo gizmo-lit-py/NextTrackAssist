@@ -1,30 +1,37 @@
 <!DOCTYPE html>
 <html lang="ja">
-    <head>
-        <meta charset="UTF-8">
-        <title>NextTrack Recommendations</title>
-    </head>
-    <body>
+<head>
+    <meta charset="UTF-8">
+    <title>Next Track Recommendations</title>
+</head>
+<body>
 
-        <h1>基準曲</h1>
-        <p>
-            {{ base_track["title"] }}
-            (BPM: {{ base_track["bpm"] }}
-            KEY: {{ base_track["key"] }}
-            ENERGY: {{ base_track["energy"] }})
-        </p>
+    <h1>基準曲</h1>
+    <p>
+        {{ base_track.title }}
+        (BPM: {{ base_track.bpm }},
+         KEY: {{ base_track.key }},
+         ENERGY: {{ base_track.energy }})
+    </p>
 
-        <h2>おすすめTOP5</h2>
+    <h2>おすすめTOP5</h2>
 
-        {% for track in recommendations %}
-          <div>
-            <h3>{{ track.title }}</h3>
-            <p>総合スコア: {{ track.total_score }}</p>
+    {% for item in recommendations %}
+        <div style="margin-bottom: 20px;">
 
-            <p>BPM: {{ track.bpm_score }} ({{ track.bpm_reason }})</p>
-            <p>Key: {{ track.key_score }} [{{ track.key_label }}]</p>
-            <p>Energy: {{ track.energy_score }} ({{ track.energy_reason }})</p>
-          </div>
-        {% endfor %}
-    </body>
+            <strong>{{ item.track.title }}</strong>
+            - Total Score: {{ item.score.total_score }}
+
+            <ul>
+                <li>BPM Score: {{ item.score.bpm_score }}
+                    (diff: {{ item.score.bpm_diff }})
+                </li>
+                <li>Key Score: {{ item.score.key_score }}</li>
+                <li>Energy Score: {{ item.score.energy_score }}</li>
+            </ul>
+
+        </div>
+    {% endfor %}
+
+</body>
 </html>
