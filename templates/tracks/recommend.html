@@ -1,37 +1,27 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <title>Next Track Recommendations</title>
-</head>
-<body>
+{% extends "base.html" %}
 
-    <h1>基準曲</h1>
-    <p>
-        {{ base_track.title }}
-        (BPM: {{ base_track.bpm }},
-         KEY: {{ base_track.key }},
-         ENERGY: {{ base_track.energy }})
-    </p>
+{% block content %}
 
-    <h2>おすすめTOP5</h2>
+<h1>Recommendations</h1>
 
-    {% for item in recommendations %}
-        <div style="margin-bottom: 20px;">
+<h2>Base Track</h2>
 
-            <strong>{{ item.track.title }}</strong>
-            - Total Score: {{ item.score.total_score }}
+<p>
+{{ base_track.title }}
+(BPM {{base_track.bpm}} / {{base_track.key}})
+</p>
 
-            <ul>
-                <li>BPM Score: {{ item.score.bpm_score }}
-                    (diff: {{ item.score.bpm_diff }})
-                </li>
-                <li>Key Score: {{ item.score.key_score }}</li>
-                <li>Energy Score: {{ item.score.energy_score }}</li>
-            </ul>
+<h2>Next Tracks</h2>
 
-        </div>
-    {% endfor %}
+{% for rec in recommendations %}
 
-</body>
-</html>
+<div>
+
+{{rec.title}}  
+Score : {{rec.total_score}}
+
+</div>
+
+{% endfor %}
+
+{% endblock %}

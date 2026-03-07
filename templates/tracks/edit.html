@@ -1,50 +1,45 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <title>曲を編集</title>
-</head>
-<body>
-    <h1>曲を編集</h1>
+{% extends "base.html" %}
 
-    <form action="/tracks/{{ track['id'] }}/update" method="POST">
-        <div>
-            <label>タイトル</label>
-            <input type="text" name="title" value="{{ track['title'] }}" required>
-        </div>
+{% block content %}
 
-        <div>
-            <label>アーティスト</label>
-            <input type="text" name="artist" value="{{ track['artist'] }}" required>
-        </div>
+<h1>Edit Track</h1>
 
-        <div>
-            <label>BPM</label>
-            <input type="number" name="bpm" value="{{ track['bpm'] }}" min="1" required>
-        </div>
+<form method="POST" action="/tracks/{{track.id}}/update">
 
-        <div>
-            <label>Key（Camelot）</label>
-            <input type="text" name="key" value="{{ track['key'] }}" required>
-        </div>
+<p>
+Title
+<br>
+<input name="title" value="{{track.title}}">
+</p>
 
-        <div>
-            <label>Energy（1〜10）</label>
-            <input type="number" name="energy" value="{{ track['energy'] }}" min="1" max="10" required>
-        </div>
+<p>
+Artist
+<br>
+<input name="artist" value="{{track.artist}}">
+</p>
 
-        <div>
-            <label>ジャンル</label>
-            <input type="text" name="genre" value="{{ track['genre'] }}">
-        </div>
+<p>
+BPM
+<br>
+<input name="bpm" value="{{track.bpm}}">
+</p>
 
-        <button type="submit">更新</button>
-    </form>
+<p>
+Key
+<br>
+<input name="key" value="{{track.key}}">
+</p>
 
-    <p>
-        <a href="/tracks/{{ track['id'] }}">詳細に戻る</a>
-        |
-        <a href="/">一覧に戻る</a>
-    </p>
-</body>
-</html>
+<p>
+Energy
+<br>
+<input name="energy" value="{{track.energy}}">
+</p>
+
+<button type="submit">
+Update
+</button>
+
+</form>
+
+{% endblock %}

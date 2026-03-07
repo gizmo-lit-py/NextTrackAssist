@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Track List</h1>
+
+{% for track in tracks %}
+
+<div class="track">
+
+<a href="/tracks/{{track.id}}">
+{{track.title}}
+</a>
+
+- {{track.artist}}
+
+</div>
+
+{% endfor %}
+
+{% endblock %}
