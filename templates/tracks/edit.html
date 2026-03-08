@@ -9,31 +9,31 @@
 <p>
 Title
 <br>
-<input name="title" value="{{track.title}}">
+<input name="title" value="{{track.title}}" required>
 </p>
 
 <p>
 Artist
 <br>
-<input name="artist" value="{{track.artist}}">
+<input name="artist" value="{{track.artist}}" required>
 </p>
 
 <p>
 BPM
 <br>
-<input name="bpm" value="{{track.bpm}}">
+<input name="bpm" type="number" min="40" max="250" value="{{track.bpm}}" required>
 </p>
 
 <p>
 Key
 <br>
-<input name="key" value="{{track.key}}">
+<input name="key" value="{{track.key}}" pattern="^(1[0-2]|[1-9])[AaBb]$" required>
 </p>
 
 <p>
 Energy
 <br>
-<input name="energy" value="{{track.energy}}">
+<input name="energy" type="number" min="1" max="10" value="{{track.energy}}" required>
 </p>
 
 <button type="submit">

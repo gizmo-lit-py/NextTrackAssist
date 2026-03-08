@@ -14,6 +14,19 @@ DJセットの流れを定量的にサポートします。
 
 ---
 
+# Quick Start（最短）
+
+```
+docker-compose up --build
+```
+
+- ブラウザで `http://localhost:8000/login` を開く
+- `Register` でアカウント作成（パスワード8文字以上）
+- `Add Track` から2曲以上登録
+- Track詳細の `Recommend Next Track` で次曲候補を確認
+
+---
+
 # Features
 
 - 楽曲登録 / 編集 / 削除

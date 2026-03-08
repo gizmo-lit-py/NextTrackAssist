@@ -1,6 +1,7 @@
 version: "3.9"
 
 services:
+
   db:
     image: postgres:15
     environment:
@@ -14,10 +15,19 @@ services:
     build: .
     depends_on:
       - db
-    ports:
-      - "8000:8000"
+    expose:
+      - "8000"
     environment:
       DATABASE_URL: postgresql://user:password@db:5432/nexttrack_db
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - web
 
 volumes:
   postgres_data:

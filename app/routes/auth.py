@@ -1,5 +1,6 @@
-from flask import Blueprint, render_template, request, redirect, session, url_for
+from flask import Blueprint, render_template, request, redirect, session, url_for, flash
 from werkzeug.security import generate_password_hash, check_password_hash
+from sqlalchemy.exc import IntegrityError
 from app.extensions import SessionLocal
 from app.models.user import User
 
@@ -13,20 +14,32 @@ def register():
 
         db = SessionLocal()
 
-        email = request.form["email"]
+        email = request.form["email"].strip().lower()
         password = request.form["password"]
+
+        if len(password) < 8:
+            db.close()
+            flash("パスワードは8文字以上にしてください。", "error")
+            return render_template("auth/register.html")
 
         hashed_password = generate_password_hash(password)
 
         user = User(
             email=email,
-            password=hashed_password
+            password_hash=hashed_password
         )
 
-        db.add(user)
-        db.commit()
+        try:
+            db.add(user)
+            db.commit()
+        except IntegrityError:
+            db.rollback()
+            flash("このメールアドレスはすでに登録済みです。", "error")
+            return render_template("auth/register.html")
+        finally:
+            db.close()
 
-        db.close()
+        flash("登録しました。ログインしてください。", "success")
 
         return redirect(url_for("auth.login"))
 
@@ -40,18 +53,20 @@ def login():
 
         db = SessionLocal()
 
-        email = request.form["email"]
+        email = request.form["email"].strip().lower()
         password = request.form["password"]
 
         user = db.query(User).filter(User.email == email).first()
 
         db.close()
 
-        if user and check_password_hash(user.password, password):
+        if user and check_password_hash(user.password_hash, password):
 
             session["user_id"] = user.id
 
             return redirect(url_for("tracks.index"))
+
+        flash("メールアドレスまたはパスワードが違います。", "error")
 
     return render_template("auth/login.html")
 

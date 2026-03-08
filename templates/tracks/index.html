@@ -4,6 +4,10 @@
 
 <h1>Track List</h1>
 
+<p>
+使い方: 1) Add Track で楽曲を登録 2) 楽曲詳細を開く 3) Recommend Next Track で次曲候補を確認
+</p>
+
 {% for track in tracks %}
 
 <div class="track">
@@ -17,5 +21,11 @@
 </div>
 
 {% endfor %}
+
+{% if not tracks %}
+<p>
+まだトラックがありません。まずは Add Track から2曲以上登録してください。
+</p>
+{% endif %}
 
 {% endblock %}

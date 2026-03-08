@@ -9,31 +9,31 @@
 <p>
 Title
 <br>
-<input name="title">
+<input name="title" required>
 </p>
 
 <p>
 Artist
 <br>
-<input name="artist">
+<input name="artist" required>
 </p>
 
 <p>
 BPM
 <br>
-<input name="bpm">
+<input name="bpm" type="number" min="40" max="250" required>
 </p>
 
 <p>
 Key
 <br>
-<input name="key">
+<input name="key" placeholder="8A" pattern="^(1[0-2]|[1-9])[AaBb]$" required>
 </p>
 
 <p>
 Energy
 <br>
-<input name="energy">
+<input name="energy" type="number" min="1" max="10" required>
 </p>
 
 <button type="submit">

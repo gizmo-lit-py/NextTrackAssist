@@ -8,7 +8,7 @@
 
 <p>
 {{ base_track.title }}
-(BPM {{base_track.bpm}} / {{base_track.key}})
+(BPM {{base_track.bpm}} / {{base_track.key}} / Energy {{base_track.energy}})
 </p>
 
 <h2>Next Tracks</h2>
@@ -17,11 +17,17 @@
 
 <div>
 
-{{rec.title}}  
-Score : {{rec.total_score}}
+<a href="/tracks/{{rec.id}}">{{rec.title}}</a> - {{rec.artist}}<br>
+Score: {{rec.total_score}} / BPM差: {{rec.bpm_diff}} / Key: {{rec.key}} / Energy: {{rec.energy}}<br>
+Hint: {{rec.transition_tip}}
 
 </div>
+<hr>
 
 {% endfor %}
+
+<p>
+<a href="/tracks/{{base_track.id}}">Back to Detail</a>
+</p>
 
 {% endblock %}
