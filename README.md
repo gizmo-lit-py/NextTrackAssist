@@ -14,7 +14,7 @@ DJセットの流れを定量的にサポートします。
 
 ---
 
-# Quick Start（最短）
+# Quick Start
 
 ```
 docker-compose up --build
