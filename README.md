@@ -1,218 +1,146 @@
 # NextTrackAssist
 
-NextTrackAssist は、DJの次曲選択を支援するスコアリング型アプリケーションです。
+![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python)
+![Flask](https://img.shields.io/badge/Flask-3.x-black?logo=flask)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue?logo=postgresql)
+![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker)
+![pytest](https://img.shields.io/badge/tested%20with-pytest-yellow?logo=pytest)
 
-DJの選曲は経験や感覚に依存する部分が大きく、  
-BPM・Key・Energy の流れが崩れるとセット全体の一体感が失われます。
+**NextTrackAssist** は、DJの次曲選択を支援するスコアリング型Webアプリケーションです。
 
-NextTrackAssist は以下の3要素を数値化し、次曲候補を提示することで  
-DJセットの流れを定量的にサポートします。
+DJの選曲は経験や感覚に依存する部分が大きく、BPM・Key・Energy の流れが崩れるとセット全体の一体感が失われます。  
+NextTrackAssist はその判断を数値化し、次曲候補を定量的にサポートします。
 
-- BPM
-- Camelot Key
-- Energy
+> **Motivation:** DJとして活動する中で「次の曲どうする？」という判断をロジックで補えないかと思ったのが開発のきっかけです。  
+> BPM / Key / Energy の3要素をスコアリングすることで、感覚だけに頼らない選曲をサポートします。
 
 ---
 
-# Quick Start（最短）
+## Quick Start
 
-```
+```bash
+git clone https://github.com/gizmo-lit-py/NextTrackAssist.git
+cd NextTrackAssist
 docker-compose up --build
 ```
 
-- ブラウザで `http://localhost:8000/login` を開く
-- `Register` でアカウント作成（パスワード8文字以上）
-- `Add Track` から2曲以上登録
-- Track詳細の `Recommend Next Track` で次曲候補を確認
+ブラウザで `http://localhost:8000/login` を開いてください。
+
+1. `Register` でアカウント作成（パスワード8文字以上）
+2. `Add Track` から2曲以上登録
+3. Track詳細の `Recommend Next Track` で次曲候補を確認
 
 ---
 
-# Features
+## Features
 
-- 楽曲登録 / 編集 / 削除
-- BPM / Camelot Key / Energy に基づくスコアリング
+- 楽曲の登録 / 編集 / 削除
+- BPM / Camelot Key / Energy に基づく次曲スコアリング
 - 次曲候補の提示
 - ユーザー登録 / ログイン / ログアウト
-- login_required による認証制御
-- Service Layer に分離したスコアロジック
-- scoreモジュールの単体テスト
+- `login_required` によるアクセス制御
+- Service Layer に分離したスコアリングロジック
+- pytest による score モジュールの単体テスト
 
 ---
 
-# Scoring Logic
+## Tech Stack
 
-NextTrackAssist では以下の3軸で次曲候補を評価します。
-
-| 要素 | 説明 |
+| カテゴリ | 技術 |
 |---|---|
-| BPM | テンポ差 |
-| Camelot Key | ハーモニックミキシング |
-| Energy | 曲の盛り上がり |
-
-重みは以下の通りです。
-
-```
-BPM    : 0.7
-Energy : 0.2
-Key    : 0.1
-```
-
-### BPM
-テンポ差はミックスの違和感に直結するため、最も高い重みを設定しています。
-
-### Camelot Key
-Camelot Wheel の理論をもとに
-
-- 完全一致
-- 隣接キー
-- 相対長短
-- 非互換
-
-を判定しています。
-
-### Energy
-楽曲の盛り上がりを 1〜10 の値で管理し、  
-差分が小さいほど高く評価します。
+| Backend | Python / Flask / SQLAlchemy |
+| Database | PostgreSQL |
+| Infrastructure | Docker / docker-compose / Gunicorn |
+| Test | pytest |
+| Frontend | HTML / Jinja2 |
 
 ---
 
-# Tech Stack
+## Architecture
 
-## Backend
+責務分離を意識した構成を採用しています。
 
-- Python
-- Flask
-- SQLAlchemy
+```
+app/
+├── config.py
+├── extensions.py
+├── __init__.py
+├── models/
+│   ├── track.py
+│   └── user.py
+├── routes/
+│   ├── auth.py
+│   └── tracks.py
+├── services/
+│   └── score.py       ← スコアリングロジックをRoute層から分離
+└── utils/
+    └── auth.py
+```
 
-## Database
+- **Route Layer** — HTTPリクエストの処理と画面遷移
+- **Service Layer** — スコアリングロジックをビジネスロジックとして独立管理
+- **Model Layer** — SQLAlchemy モデルで Track / User を定義
 
-- PostgreSQL
+---
 
-## Infrastructure
+## Scoring Logic
 
-- Docker
-- docker-compose
-- Gunicorn
+次曲候補を以下の3軸で評価し、重み付きスコアを算出します。
+
+| 要素 | 重み | 説明 |
+|---|---|---|
+| BPM | 0.7 | テンポ差（ミックスの違和感に最も直結するため高重み） |
+| Energy | 0.2 | 1〜10 の盛り上がり値の差分 |
+| Camelot Key | 0.1 | ハーモニックミキシング理論に基づく互換性判定 |
+
+**Key 判定の4段階：**
+- 完全一致 / 隣接キー / 相対長短 / 非互換
+
+---
+
+## Database Schema
+
+`tracks` テーブル
+
+| カラム | 型 | 制約 |
+|---|---|---|
+| id | integer | PK |
+| title | string | - |
+| artist | string | - |
+| bpm | integer | 40〜250 |
+| key | string | Camelot Key 形式 |
+| energy | integer | 1〜10 |
+
+異常データの登録を防ぐため、BPM・Energy・Key 形式に CHECK 制約を設定しています。
+
+---
+
+## Authentication
+
+- ユーザー登録 / ログイン / ログアウト
+- session による認証管理
+- `login_required` デコレータによるアクセス制御
+
+---
 
 ## Test
 
-- pytest
-
----
-
-# Architecture
-
-本アプリでは責務分離を意識した構成を採用しています。
-
-```
-app
-├ config.py
-├ extensions.py
-├ __init__.py
-├ models
-│   ├ track.py
-│   └ user.py
-├ routes
-│   ├ auth.py
-│   └ tracks.py
-├ services
-│   └ score.py
-└ utils
-    └ auth.py
-```
-
-### Route Layer
-
-HTTPリクエストを処理し、画面遷移を担当します。
-
-### Service Layer
-
-スコアリングロジックを routes から分離し、  
-ビジネスロジックを独立させています。
-
-### Model Layer
-
-SQLAlchemy モデルとして Track / User を定義しています。
-
----
-
-# Database
-
-tracks テーブル
-
-| column | type |
-|---|---|
-| id | integer |
-| title | string |
-| artist | string |
-| bpm | integer |
-| key | string |
-| energy | integer |
-
-### Constraints
-
-- BPM : 40〜250
-- Energy : 1〜10
-- Camelot Key 形式チェック
-
-異常データの登録を防ぐため CHECK 制約を設定しています。
-
----
-
-# Authentication
-
-- ユーザー登録
-- ログイン
-- ログアウト
-- session による認証管理
-- login_required によるアクセス制御
-
----
-
-# Test
-
 score モジュールに対して単体テストを実装しています。
 
-主なテスト対象
+```bash
+docker-compose run --rm app pytest
+```
 
-- BPM差分
-- Camelot Key 判定
-- Energy差分
-- total_score
+主なテスト対象：BPM差分 / Camelot Key判定 / Energy差分 / total_score
 
 ---
 
-# Local Development
+## Future Improvements
 
-## Clone
-
-```
-git clone <repository>
-cd NextTrackAssist
-```
-
-## Run with Docker
-
-```
-docker-compose up --build
-```
-
----
-
-# Future Improvements
-
-- rekordbox CSV import
-- セット最適化アルゴリズム
-- ユーザーごとのトラック管理
-- AWS EC2 へのデプロイ
-- RDS への移行
-
----
-
-# Motivation
-
-DJとして活動する中で、次曲選択は経験や感覚に依存する部分が大きいと感じました。
-
-NextTrackAssist はその判断を  
-「BPM / Key / Energy」という3つの要素で定量化し、  
-次曲候補を提示することでセット構築をサポートすることを目的としています。
+| 項目 | 背景・理由 |
+|---|---|
+| rekordbox CSV import | 手動入力を不要にし、実際のDJ環境に近づけるため |
+| セット最適化アルゴリズム | 1曲ずつではなくセット全体を最適化するロジックへ拡張 |
+| ユーザーごとのトラック管理 | 複数DJが同一環境を利用できるマルチユーザー対応 |
+| AWS EC2 へのデプロイ | 実際の本番環境を想定したインフラ構築の学習も兼ねて |
+| RDS への移行 | クラウドネイティブなDB構成への移行 |
