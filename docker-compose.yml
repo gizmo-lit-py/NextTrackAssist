@@ -18,7 +18,10 @@ services:
     expose:
       - "8000"
     environment:
+      SECRET_KEY: dev-secret-key
       DATABASE_URL: postgresql://user:password@db:5432/nexttrack_db
+    command: >
+      sh -c "python scripts/migrate.py && gunicorn -b 0.0.0.0:8000 'app:create_app()'"
 
   nginx:
     image: nginx:latest

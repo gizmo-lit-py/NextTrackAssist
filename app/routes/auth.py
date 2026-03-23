@@ -1,19 +1,18 @@
-from flask import Blueprint, render_template, request, redirect, session, url_for, flash
-from werkzeug.security import generate_password_hash, check_password_hash
+from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 from sqlalchemy.exc import IntegrityError
+from werkzeug.security import check_password_hash, generate_password_hash
+
 from app.extensions import SessionLocal
 from app.models.user import User
+
 
 auth_bp = Blueprint("auth", __name__)
 
 
 @auth_bp.route("/register", methods=["GET", "POST"])
 def register():
-
     if request.method == "POST":
-
         db = SessionLocal()
-
         email = request.form["email"].strip().lower()
         password = request.form["password"]
 
@@ -23,11 +22,7 @@ def register():
             return render_template("auth/register.html")
 
         hashed_password = generate_password_hash(password)
-
-        user = User(
-            email=email,
-            password_hash=hashed_password
-        )
+        user = User(email=email, password_hash=hashed_password)
 
         try:
             db.add(user)
@@ -40,7 +35,6 @@ def register():
             db.close()
 
         flash("登録しました。ログインしてください。", "success")
-
         return redirect(url_for("auth.login"))
 
     return render_template("auth/register.html")
@@ -48,22 +42,18 @@ def register():
 
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
-
     if request.method == "POST":
-
         db = SessionLocal()
 
-        email = request.form["email"].strip().lower()
-        password = request.form["password"]
-
-        user = db.query(User).filter(User.email == email).first()
-
-        db.close()
+        try:
+            email = request.form["email"].strip().lower()
+            password = request.form["password"]
+            user = db.query(User).filter(User.email == email).first()
+        finally:
+            db.close()
 
         if user and check_password_hash(user.password_hash, password):
-
             session["user_id"] = user.id
-
             return redirect(url_for("tracks.index"))
 
         flash("メールアドレスまたはパスワードが違います。", "error")
@@ -73,7 +63,5 @@ def login():
 
 @auth_bp.route("/logout")
 def logout():
-
     session.clear()
-
     return redirect(url_for("auth.login"))

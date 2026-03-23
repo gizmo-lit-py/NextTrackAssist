@@ -7,19 +7,48 @@
 <h2>Base Track</h2>
 
 <p>
-{{ base_track.title }}
-(BPM {{base_track.bpm}} / {{base_track.key}} / Energy {{base_track.energy}})
+{{ base_track.title }} / {{ base_track.artist }}<br>
+BPM: {{base_track.bpm}} &nbsp;|&nbsp; Key: {{base_track.key}} &nbsp;|&nbsp; Energy: {{base_track.energy}}
 </p>
+
+<hr>
 
 <h2>Next Tracks</h2>
 
 {% for rec in recommendations %}
 
-<div>
+<div class="track">
 
-<a href="/tracks/{{rec.id}}">{{rec.title}}</a> - {{rec.artist}}<br>
-Score: {{rec.total_score}} / BPM差: {{rec.bpm_diff}} / Key: {{rec.key}} / Energy: {{rec.energy}}<br>
+<p>
+<strong><a href="/tracks/{{rec.id}}">{{rec.title}}</a></strong> - {{rec.artist}}<br>
+BPM: {{rec.bpm}} &nbsp;|&nbsp; Key: {{rec.key}} &nbsp;|&nbsp; Energy: {{rec.energy}}
+</p>
+
+<p>
+<strong>総合スコア: {{rec.total_score}}</strong>
+</p>
+
+<table style="border-collapse:collapse; font-size:0.9em; margin-bottom:6px;">
+<tr>
+  <th style="text-align:left; padding:2px 12px 2px 0;">BPM</th>
+  <td style="padding:2px 12px 2px 0;">{{rec.bpm_score}}</td>
+  <td>{{rec.bpm_reason}}</td>
+</tr>
+<tr>
+  <th style="text-align:left; padding:2px 12px 2px 0;">Energy</th>
+  <td style="padding:2px 12px 2px 0;">{{rec.energy_score}}</td>
+  <td>{{rec.energy_reason}}</td>
+</tr>
+<tr>
+  <th style="text-align:left; padding:2px 12px 2px 0;">Key</th>
+  <td style="padding:2px 12px 2px 0;">{{rec.key_score}}</td>
+  <td>{{rec.key_reason}}</td>
+</tr>
+</table>
+
+<p style="color:#555;">
 Hint: {{rec.transition_tip}}
+</p>
 
 </div>
 <hr>

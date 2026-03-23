@@ -1,8 +1,10 @@
-from flask import Blueprint, render_template, request, redirect, abort, url_for, flash
+from flask import Blueprint, abort, flash, g, redirect, render_template, request, url_for
+
 from app.extensions import SessionLocal
 from app.models.track import Track
 from app.services.score import calc_total_score, parse_camelot
 from app.utils.auth import login_required
+
 
 tracks_bp = Blueprint("tracks", __name__)
 
@@ -64,15 +66,27 @@ def _build_transition_tip(base_energy, cand_energy, bpm_diff):
     return f"{bpm_tip} / {energy_tip}"
 
 
+def _find_user_track(db, track_id, user_id):
+    return db.query(Track).filter(
+        Track.id == track_id,
+        Track.user_id == user_id,
+    ).first()
+
+
 @tracks_bp.route("/")
 @login_required
 def index():
-
     db = SessionLocal()
 
-    tracks = db.query(Track).order_by(Track.id.desc()).all()
-
-    db.close()
+    try:
+        tracks = (
+            db.query(Track)
+            .filter(Track.user_id == g.current_user.id)
+            .order_by(Track.id.desc())
+            .all()
+        )
+    finally:
+        db.close()
 
     return render_template("tracks/index.html", tracks=tracks)
 
@@ -80,14 +94,12 @@ def index():
 @tracks_bp.route("/tracks/new")
 @login_required
 def new_track():
-
     return render_template("tracks/new.html")
 
 
 @tracks_bp.route("/tracks", methods=["POST"])
 @login_required
 def create_track():
-
     payload, error = _validate_track_form(request.form)
     if error:
         flash(error, "error")
@@ -95,26 +107,29 @@ def create_track():
 
     db = SessionLocal()
 
-    track = Track(**payload)
-
-    db.add(track)
-    db.commit()
-
-    db.close()
+    try:
+        track = Track(**payload, user_id=g.current_user.id)
+        db.add(track)
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.close()
 
     flash("トラックを登録しました。", "success")
-    return redirect("/")
+    return redirect(url_for("tracks.index"))
 
 
 @tracks_bp.route("/tracks/<int:track_id>")
 @login_required
 def detail(track_id):
-
     db = SessionLocal()
 
-    track = db.query(Track).filter(Track.id == track_id).first()
-
-    db.close()
+    try:
+        track = _find_user_track(db, track_id, g.current_user.id)
+    finally:
+        db.close()
 
     if not track:
         abort(404)
@@ -125,12 +140,12 @@ def detail(track_id):
 @tracks_bp.route("/tracks/<int:track_id>/edit")
 @login_required
 def edit(track_id):
-
     db = SessionLocal()
 
-    track = db.query(Track).filter(Track.id == track_id).first()
-
-    db.close()
+    try:
+        track = _find_user_track(db, track_id, g.current_user.id)
+    finally:
+        db.close()
 
     if not track:
         abort(404)
@@ -141,7 +156,6 @@ def edit(track_id):
 @tracks_bp.route("/tracks/<int:track_id>/update", methods=["POST"])
 @login_required
 def update(track_id):
-
     payload, error = _validate_track_form(request.form)
     if error:
         flash(error, "error")
@@ -149,58 +163,65 @@ def update(track_id):
 
     db = SessionLocal()
 
-    track = db.query(Track).filter(Track.id == track_id).first()
+    try:
+        track = _find_user_track(db, track_id, g.current_user.id)
+        if not track:
+            abort(404)
 
-    if not track:
+        track.title = payload["title"]
+        track.artist = payload["artist"]
+        track.bpm = payload["bpm"]
+        track.key = payload["key"]
+        track.energy = payload["energy"]
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+    finally:
         db.close()
-        abort(404)
-
-    track.title = payload["title"]
-    track.artist = payload["artist"]
-    track.bpm = payload["bpm"]
-    track.key = payload["key"]
-    track.energy = payload["energy"]
-
-    db.commit()
-    db.close()
 
     flash("トラックを更新しました。", "success")
-    return redirect(f"/tracks/{track_id}")
+    return redirect(url_for("tracks.detail", track_id=track_id))
 
 
 @tracks_bp.route("/tracks/<int:track_id>/delete", methods=["POST"])
 @login_required
 def delete(track_id):
-
     db = SessionLocal()
 
-    track = db.query(Track).filter(Track.id == track_id).first()
+    try:
+        track = _find_user_track(db, track_id, g.current_user.id)
+        if not track:
+            abort(404)
 
-    if not track:
+        db.delete(track)
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+    finally:
         db.close()
-        abort(404)
 
-    db.delete(track)
-    db.commit()
-
-    db.close()
-
-    flash("トラックを削除しました。", "success")
-    return redirect("/")
+    flash("トラックを削除しました", "success")
+    return redirect(url_for("tracks.index"))
 
 
 @tracks_bp.route("/tracks/<int:track_id>/recommend")
 @login_required
 def recommend(track_id):
     db = SessionLocal()
-    base_track = db.query(Track).filter(Track.id == track_id).first()
 
-    if not base_track:
+    try:
+        base_track = _find_user_track(db, track_id, g.current_user.id)
+        if not base_track:
+            abort(404)
+
+        candidates = db.query(Track).filter(
+            Track.id != track_id,
+            Track.user_id == g.current_user.id,
+        ).all()
+    finally:
         db.close()
-        abort(404)
-
-    candidates = db.query(Track).filter(Track.id != track_id).all()
-    db.close()
 
     if not candidates:
         flash("他のトラックがないため、おすすめを計算できません。", "error")
@@ -228,8 +249,16 @@ def recommend(track_id):
                 "energy": cand.energy,
                 "total_score": result["total_score"],
                 "bpm_diff": result["bpm_diff"],
+                "bpm_score": result["bpm_score"],
+                "energy_score": result["energy_score"],
+                "key_score": result["key_score"],
+                "bpm_reason": result["bpm_reason"],
+                "energy_reason": result["energy_reason"],
+                "key_reason": result["key_reason"],
                 "transition_tip": _build_transition_tip(
-                    base_track.energy, cand.energy, result["bpm_diff"]
+                    base_track.energy,
+                    cand.energy,
+                    result["bpm_diff"],
                 ),
             }
         )

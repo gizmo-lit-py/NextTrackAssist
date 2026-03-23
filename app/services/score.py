@@ -132,6 +132,48 @@ def calc_key_score(base_key: str, cand_key: str):
 
 
 # ==============================
+# 理由文
+# ==============================
+
+def bpm_reason(diff: int) -> str:
+    """BPM差分から日本語の評価文を返す。"""
+    if diff <= 2:
+        return f"差分{diff} → ほぼ一致（ロングミックス向き）"
+    elif diff <= 5:
+        return f"差分{diff} → 許容範囲（軽いピッチ調整で対応可）"
+    elif diff <= 8:
+        return f"差分{diff} → やや離れている（ブレイク・カットイン推奨）"
+    else:
+        return f"差分{diff} → 大きくズレている（テンポチェンジ向き）"
+
+
+def energy_reason(diff: int) -> str:
+    """Energy差分から日本語の評価文を返す。"""
+    if diff == 0:
+        return "差分0 → 完全一致（エネルギー維持）"
+    elif diff <= 2:
+        return f"差分{diff} → 自然なエネルギー変化"
+    elif diff <= 4:
+        return f"差分{diff} → やや変化あり（意図的な緩急向き）"
+    else:
+        return f"差分{diff} → 乖離が大きい（セット構成を意識して）"
+
+
+def key_reason(score: int) -> str:
+    """Keyスコアから日本語の評価文を返す。"""
+    if score == 100:
+        return "完全一致（最も調和的）"
+    elif score >= 95:
+        return "隣接キー・同Letter（自然な転調）"
+    elif score >= 90:
+        return "同Number・相対調（調和が取れる）"
+    elif score >= 80:
+        return "隣接キー・異Letter（概ね問題なし）"
+    else:
+        return "非関連キー（キーの違いに注意）"
+
+
+# ==============================
 # 総合スコア
 # ==============================
 
@@ -165,7 +207,11 @@ def calc_total_score(base: dict, cand: dict, weights: dict = DEFAULT_WEIGHTS):
         "bpm_score": bpm_score,
         "energy_score": energy_score,
         "key_score": key_score,
-        "total_score": round(total, 2)
+        "total_score": round(total, 2),
+        # 各軸の理由文（テンプレートで表示する）
+        "bpm_reason": bpm_reason(bpm_diff),
+        "energy_reason": energy_reason(abs(base["energy"] - cand["energy"])),
+        "key_reason": key_reason(key_score),
     }
 
 

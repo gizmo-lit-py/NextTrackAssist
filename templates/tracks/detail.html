@@ -30,6 +30,7 @@ Recommend Next Track
 </a>
 
 <form method="POST" action="/tracks/{{track.id}}/delete">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
 <button type="submit">
 Delete

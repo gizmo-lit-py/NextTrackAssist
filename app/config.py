@@ -11,3 +11,6 @@ class Config:
     )
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    # テスト時は環境変数 WTF_CSRF_ENABLED=False で無効化できる
+    WTF_CSRF_ENABLED = os.getenv("WTF_CSRF_ENABLED", "True").lower() == "true"
