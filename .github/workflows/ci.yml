@@ -1,0 +1,52 @@
+# ============================================================
+# NextTrackAssist CI — GitHub Actions ワークフロー
+#
+# 「いつ動くか」: main/develop ブランチへの push と
+#                Pull Request のたびに自動実行される
+# 「何をするか」: Python の依存パッケージを入れて pytest を走らせる
+# ============================================================
+
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test:
+    name: Run Tests (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest  # GitHub が用意する Ubuntu サーバーを使う
+
+    # 複数の Python バージョンでテストする（マトリクスビルド）
+    strategy:
+      fail-fast: false  # 1バージョンが失敗しても他を止めない
+      matrix:
+        python-version: ["3.11", "3.12"]
+
+    steps:
+      # 1. リポジトリのコードをサーバーにダウンロード
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. 指定バージョンの Python をセットアップ
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip  # pip のキャッシュを有効化（2回目以降が速くなる）
+
+      # 3. 依存パッケージをインストール
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # 4. pytest を実行
+      #    - テスト用の環境変数はここで設定
+      #    - conftest.py でも設定しているが、CI でも明示的に指定するのがベストプラクティス
+      - name: Run tests
+        env:
+          DATABASE_URL: "sqlite://"       # テストはインメモリ SQLite を使う
+          SECRET_KEY: "ci-test-secret"    # CI 用のダミーシークレット
+          WTF_CSRF_ENABLED: "False"       # フォームテストで CSRF を無効化
+        run: pytest --tb=short -v         # -v: テスト名を表示、--tb=short: エラー時に短い形式で表示
