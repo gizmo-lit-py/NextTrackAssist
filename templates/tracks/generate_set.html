@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}DJ Set Generator{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h2>DJ Set Generator</h2>
+  <p>BPMの開始値と目標値を指定して、最適なDJセットを自動生成します。</p>
+
+  <form method="POST" action="{{ url_for('tracks.generate_set') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="form-group">
+      <label for="start_bpm">Start BPM</label>
+      <input type="number" id="start_bpm" name="start_bpm"
+             min="40" max="250" value="126" required>
+      <small>セット開始時のテンポ</small>
+    </div>
+
+    <div class="form-group">
+      <label for="target_bpm">Target BPM</label>
+      <input type="number" id="target_bpm" name="target_bpm"
+             min="40" max="250" value="134" required>
+      <small>セット終盤の目標テンポ</small>
+    </div>
+
+    <div class="form-group">
+      <label for="num_tracks">Number of Tracks</label>
+      <input type="number" id="num_tracks" name="num_tracks"
+             min="2" max="30" value="8" required>
+      <small>セットに含める曲数（2〜30）</small>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Generate Set</button>
+  </form>
+</div>
+{% endblock %}

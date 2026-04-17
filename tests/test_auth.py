@@ -97,6 +97,6 @@ def test_login_wrong_password(client, user_with_tracks):
 def test_logout_redirects_to_login(client, user_with_tracks):
     """ログアウト後にログインページへリダイレクトされること。"""
     login(client)
-    response = client.get("/logout", follow_redirects=False)
+    response = client.post("/logout", follow_redirects=False)
     assert response.status_code == 302
     assert "/login" in response.headers["Location"]

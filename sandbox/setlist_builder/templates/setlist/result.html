@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h3>セットリスト結果</h3>
+
+<div style="background:#f5f5f5; padding:15px; border-radius:8px; margin-bottom:20px;">
+  <strong>条件:</strong>
+  開始BPM {{ start_bpm }}
+  ｜ {{ direction_label }}
+  ｜ {{ set_length }}分
+  <br>
+  <strong>結果:</strong>
+  {{ result.total_tracks }}曲
+  ｜ 推定 {{ result.estimated_time }}分
+  ｜ BPM {{ result.bpm_range.start }} → {{ result.bpm_range.end }}
+  ｜ 平均スコア {{ result.avg_score }}
+</div>
+
+<!-- BPMの流れを簡易バーで表示 -->
+<div style="margin-bottom:25px;">
+  <strong>BPMの流れ:</strong>
+  <div style="display:flex; align-items:end; gap:2px; height:80px; margin-top:8px;">
+    {% for entry in result.setlist %}
+    {% set bpm = entry.track.bpm %}
+    {% set bar_height = ((bpm - 40) / 210 * 70 + 10)|int %}
+    <div style="width:{{ (100 / result.total_tracks)|int }}%;
+                height:{{ bar_height }}px;
+                background: {% if entry.order == 1 %}#4a90d9{% else %}
+                  {% if entry.score_detail.total_score >= 80 %}#5cb85c
+                  {% elif entry.score_detail.total_score >= 60 %}#f0ad4e
+                  {% else %}#d9534f{% endif %}{% endif %};
+                border-radius:3px 3px 0 0;
+                position:relative;"
+         title="#{{ entry.order }} {{ entry.track.title }} (BPM:{{ bpm }})">
+      <span style="position:absolute; top:-18px; left:50%; transform:translateX(-50%);
+                   font-size:10px; white-space:nowrap;">{{ bpm }}</span>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- セットリスト一覧 -->
+<table style="width:100%; border-collapse:collapse;">
+  <thead>
+    <tr style="border-bottom:2px solid #333; text-align:left;">
+      <th style="padding:8px;">#</th>
+      <th style="padding:8px;">タイトル</th>
+      <th style="padding:8px;">アーティスト</th>
+      <th style="padding:8px;">BPM</th>
+      <th style="padding:8px;">Key</th>
+      <th style="padding:8px;">Energy</th>
+      <th style="padding:8px;">スコア</th>
+      <th style="padding:8px;">BPM差</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for entry in result.setlist %}
+    <tr style="border-bottom:1px solid #ddd;
+               {% if entry.order == 1 %}background:#e8f4fd;{% endif %}">
+      <td style="padding:8px; font-weight:bold;">{{ entry.order }}</td>
+      <td style="padding:8px;">{{ entry.track.title }}</td>
+      <td style="padding:8px;">{{ entry.track.artist }}</td>
+      <td style="padding:8px;">{{ entry.track.bpm }}</td>
+      <td style="padding:8px;">{{ entry.track.key }}</td>
+      <td style="padding:8px;">{{ entry.track.energy }}</td>
+      <td style="padding:8px;">
+        {% if entry.order == 1 %}
+          <span style="color:#4a90d9;">START</span>
+        {% else %}
+          {% if entry.score_detail.total_score >= 80 %}
+            <span style="color:#5cb85c;">{{ entry.score_detail.total_score }}</span>
+          {% elif entry.score_detail.total_score >= 60 %}
+            <span style="color:#f0ad4e;">{{ entry.score_detail.total_score }}</span>
+          {% else %}
+            <span style="color:#d9534f;">{{ entry.score_detail.total_score }}</span>
+          {% endif %}
+        {% endif %}
+      </td>
+      <td style="padding:8px;">
+        {% if entry.order == 1 %}
+          -
+        {% else %}
+          {% if entry.score_detail.direction_bonus > 0 %}
+            {{ entry.score_detail.bpm_diff }} <span style="color:#5cb85c;">▲</span>
+          {% elif entry.score_detail.direction_bonus < 0 %}
+            {{ entry.score_detail.bpm_diff }} <span style="color:#d9534f;">▼</span>
+          {% else %}
+            {{ entry.score_detail.bpm_diff }}
+          {% endif %}
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<div style="margin-top:20px;">
+  <a href="{{ url_for('setlist.setlist_form') }}"
+     style="padding:8px 20px; background:#666; color:white;
+            text-decoration:none; border-radius:5px;">
+    条件を変えて再生成
+  </a>
+</div>
+
+{% endblock %}

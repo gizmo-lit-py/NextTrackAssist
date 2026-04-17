@@ -67,7 +67,11 @@ border:1px solid #b6dfb6;
 {% if session.get("user_id") %}
 <a href="/">Tracks</a>
 <a href="/tracks/new">Add Track</a>
-<a href="/logout">Logout</a>
+<a href="/tracks/generate-set">Generate Set</a>
+<form action="/logout" method="POST" style="display:inline">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<button type="submit" style="background:none;border:none;color:inherit;font-weight:bold;cursor:pointer;font-size:inherit;padding:0;margin-right:20px;">Logout</button>
+</form>
 {% else %}
 <a href="/login">Login</a>
 <a href="/register">Register</a>

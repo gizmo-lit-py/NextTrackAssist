@@ -3,11 +3,11 @@ from flask_wtf.csrf import CSRFProtect
 import os
 
 from app.config import Config
-from app.extensions import Base, engine
-from app.models.track import Track  # noqa: F401
-from app.models.user import User  # noqa: F401
+from app.models.track import Track  # noqa: F401  (モデル登録用)
+from app.models.user import User  # noqa: F401  (モデル登録用)
 from app.routes.auth import auth_bp
 from app.routes.tracks import tracks_bp
+from app.routes.api import api_bp
 
 csrf = CSRFProtect()
 
@@ -27,12 +27,12 @@ def create_app():
     # CSRF 保護を有効化（テスト時は config.WTF_CSRF_ENABLED=False で無効化）
     csrf.init_app(app)
 
-    # 開発時に最低限アプリを立ち上げやすくするための自動作成。
-    # 本番/運用では migrations/ 配下の migration を正とする。
-    Base.metadata.create_all(bind=engine)
+    # DB テーブル作成は scripts/migrate.py に一本化。
+    # テスト時は conftest.py の reset_database フィクスチャが create_all を実行する。
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(tracks_bp)
+    app.register_blueprint(api_bp)
 
     # ==============================
     # カスタムエラーハンドラー

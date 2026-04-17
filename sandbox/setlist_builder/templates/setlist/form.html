@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h3>セットリストビルダー</h3>
+<p>開始BPM・セット時間・BPMの方向を指定して、自動でセットリストを生成します。</p>
+
+<form method="POST" action="{{ url_for('setlist.setlist_build') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+  <div style="margin-bottom:15px;">
+    <label for="start_bpm"><strong>開始BPM</strong></label><br>
+    <input type="number" id="start_bpm" name="start_bpm"
+           min="40" max="250" value="128"
+           style="width:120px; padding:6px;">
+    <small style="color:#666;">（40〜250）</small>
+  </div>
+
+  <div style="margin-bottom:15px;">
+    <label for="set_length"><strong>セット時間（分）</strong></label><br>
+    <input type="number" id="set_length" name="set_length"
+           min="10" max="300" value="60"
+           style="width:120px; padding:6px;">
+    <small style="color:#666;">（10〜300分）</small>
+  </div>
+
+  <div style="margin-bottom:20px;">
+    <label><strong>BPMの方向</strong></label><br>
+    <label style="margin-right:20px;">
+      <input type="radio" name="direction" value="up"> 徐々に上げる
+    </label>
+    <label style="margin-right:20px;">
+      <input type="radio" name="direction" value="keep" checked> キープ
+    </label>
+    <label>
+      <input type="radio" name="direction" value="down"> 徐々に下げる
+    </label>
+  </div>
+
+  <button type="submit"
+          style="padding:10px 30px; font-size:16px; cursor:pointer;">
+    セットリストを生成
+  </button>
+</form>
+
+{% endblock %}

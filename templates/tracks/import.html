@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>rekordbox からインポート</h1>
+
+<p>
+rekordbox のエクスポートファイル（CSV または TXT）をアップロードすると、
+トラックを一括登録できます。
+</p>
+
+<h2>エクスポート方法</h2>
+<ol>
+  <li>rekordbox を開き、コレクション（ライブラリ）を表示</li>
+  <li>トラックを選択（Cmd+A で全選択も可）</li>
+  <li>右クリック → 「トラック情報をエクスポート」または メニューから「ファイル → エクスポート」</li>
+  <li>保存形式: <strong>テキスト (タブ区切り)</strong> または <strong>CSV</strong></li>
+</ol>
+
+<hr>
+
+<form method="POST" action="/tracks/import" enctype="multipart/form-data">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+<p>
+  <label for="csv_file"><strong>ファイルを選択</strong>（CSV または TXT、最大5MB）</label><br>
+  <input type="file" id="csv_file" name="csv_file" accept=".csv,.txt" required>
+</p>
+
+<p>
+  <label for="default_energy">
+    <strong>Energy のデフォルト値</strong>（1〜10）<br>
+    <small>rekordbox には Energy フィールドがないため、インポート後に個別に編集してください。</small>
+  </label><br>
+  <input
+    type="number"
+    id="default_energy"
+    name="default_energy"
+    value="5"
+    min="1"
+    max="10"
+    required
+  >
+</p>
+
+<button type="submit">インポート開始</button>
+
+</form>
+
+<p>
+  <a href="/">← トラック一覧に戻る</a>
+</p>
+
+{% endblock %}

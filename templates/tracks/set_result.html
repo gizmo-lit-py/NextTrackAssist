@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Generated DJ Set{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h2>Generated DJ Set</h2>
+
+  <div class="set-summary">
+    <p>
+      <strong>BPM:</strong> {{ start_bpm }} &rarr; {{ target_bpm }} |
+      <strong>Tracks:</strong> {{ result.total_tracks }} |
+      <strong>Avg Score:</strong> {{ result.avg_score }}
+    </p>
+  </div>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Title</th>
+        <th>Artist</th>
+        <th>BPM</th>
+        <th>Key</th>
+        <th>Energy</th>
+        <th>Score</th>
+        <th>Transition</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for track in result.tracks %}
+      <tr>
+        <td>{{ loop.index }}</td>
+        <td>
+          <a href="{{ url_for('tracks.detail', track_id=track.id) }}">
+            {{ track.title }}
+          </a>
+        </td>
+        <td>{{ track.artist }}</td>
+        <td>{{ track.bpm }}</td>
+        <td>{{ track.key }}</td>
+        <td>{{ track.energy }}</td>
+        <td>
+          {% if track.score is defined %}
+            {{ track.score }}
+          {% else %}
+            -
+          {% endif %}
+        </td>
+        <td>
+          {% if track.bpm_reason is defined %}
+            {{ track.bpm_reason }}<br>
+            {{ track.energy_reason }}
+          {% else %}
+            Start
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="actions">
+    <a href="{{ url_for('tracks.generate_set_form') }}" class="btn">
+      Generate Another Set
+    </a>
+    <a href="{{ url_for('tracks.index') }}" class="btn">
+      Back to Track List
+    </a>
+  </div>
+</div>
+{% endblock %}
