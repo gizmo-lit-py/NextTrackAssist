@@ -223,7 +223,7 @@ def generate_set_api():
             "total_tracks": 10
         }
     """
-    data = request.get_json()
+    data = request.get_json(silent=True)
 
     if not data:
         return jsonify({"error": "JSON body is required"}), 400
