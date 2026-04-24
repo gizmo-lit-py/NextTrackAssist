@@ -53,7 +53,7 @@ MUSICAL_KEY_TO_CAMELOT = {
 # ---------------------------------------------------------------------------
 # rekordbox のカラム名（バージョンや言語設定で微妙に違う場合がある）
 # ---------------------------------------------------------------------------
-TITLE_COLS  = {"Track Title", "曲名", "Title"}
+TITLE_COLS  = {"Track Title", "曲名", "Title", "トラックタイトル"}
 ARTIST_COLS = {"Artist", "アーティスト"}
 BPM_COLS    = {"BPM"}
 KEY_COLS    = {"Musical Key", "Key", "キー", "Tonart"}  # 英/日/独の列名
@@ -261,9 +261,7 @@ def parse_rekordbox_csv(file_bytes: bytes, default_energy: int = DEFAULT_ENERGY)
 
         # -- Artist チェック --
         if not artist:
-            skipped += 1
-            skip_reasons.append(f"行{row_no}: アーティスト名が空のためスキップ")
-            continue
+            artist = "Unknown"
 
         # -- BPM 変換（"136.0" → 136）--
         try:

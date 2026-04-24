@@ -221,11 +221,11 @@ class TestParseSkip:
         assert "タイトルが空" in result["skip_reasons"][0]
 
     def test_empty_artist(self):
-        """アーティスト名が空の行はスキップされる。"""
+        """アーティスト名が空の行は 'Unknown' で補完されてインポートされる。"""
         data = make_tsv("1\tTitle\t\t128.0\t8A")
         result = parse_rekordbox_csv(data)
-        assert result["skipped"] == 1
-        assert "アーティスト名が空" in result["skip_reasons"][0]
+        assert result["imported"] == 1
+        assert result["tracks"][0]["artist"] == "Unknown"
 
     def test_unknown_key_format(self):
         """認識できない Key 形式の行はスキップされる。"""
