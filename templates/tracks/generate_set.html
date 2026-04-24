@@ -3,35 +3,46 @@
 {% block title %}DJ Set Generator{% endblock %}
 
 {% block content %}
-<div class="container">
-  <h2>DJ Set Generator</h2>
-  <p>BPMの開始値と目標値を指定して、最適なDJセットを自動生成します。</p>
+<div class="max-w-lg">
 
-  <form method="POST" action="{{ url_for('tracks.generate_set') }}">
+  <h1 class="text-2xl font-bold mb-2">DJ Set Generator</h1>
+  <p class="text-sm text-gray-500 mb-6">BPMの開始値と目標値を指定して、最適なDJセットを自動生成します。</p>
+
+  <form method="POST" action="{{ url_for('tracks.generate_set') }}"
+    class="bg-white rounded-lg border border-gray-200 p-6 space-y-4">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-    <div class="form-group">
-      <label for="start_bpm">Start BPM</label>
+    <div class="grid grid-cols-3 gap-4">
+    <div>
+      <label for="start_bpm" class="block text-sm font-medium text-gray-700 mb-1">Start BPM</label>
       <input type="number" id="start_bpm" name="start_bpm"
-             min="40" max="250" value="126" required>
-      <small>セット開始時のテンポ</small>
+             min="40" max="250" value="126" required
+             class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+      <p class="text-xs text-gray-400 mt-1">開始テンポ</p>
     </div>
 
-    <div class="form-group">
-      <label for="target_bpm">Target BPM</label>
+    <div>
+      <label for="target_bpm" class="block text-sm font-medium text-gray-700 mb-1">Target BPM</label>
       <input type="number" id="target_bpm" name="target_bpm"
-             min="40" max="250" value="134" required>
-      <small>セット終盤の目標テンポ</small>
+             min="40" max="250" value="134" required
+             class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+      <p class="text-xs text-gray-400 mt-1">目標テンポ</p>
     </div>
 
-    <div class="form-group">
-      <label for="num_tracks">Number of Tracks</label>
+    <div>
+      <label for="num_tracks" class="block text-sm font-medium text-gray-700 mb-1">Tracks</label>
       <input type="number" id="num_tracks" name="num_tracks"
-             min="2" max="30" value="8" required>
-      <small>セットに含める曲数（2〜30）</small>
+             min="2" max="30" value="8" required
+             class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+      <p class="text-xs text-gray-400 mt-1">曲数（2〜30）</p>
+    </div>
     </div>
 
-    <button type="submit" class="btn btn-primary">Generate Set</button>
+    <button type="submit"
+      class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors font-medium">
+    Generate Set
+    </button>
   </form>
+
 </div>
 {% endblock %}

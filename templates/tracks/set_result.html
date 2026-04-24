@@ -3,51 +3,52 @@
 {% block title %}Generated DJ Set{% endblock %}
 
 {% block content %}
-<div class="container">
-  <h2>Generated DJ Set</h2>
 
-  <div class="set-summary">
-    <p>
-      <strong>BPM:</strong> {{ start_bpm }} &rarr; {{ target_bpm }} |
-      <strong>Tracks:</strong> {{ result.total_tracks }} |
-      <strong>Avg Score:</strong> {{ result.avg_score }}
+  <h1 class="text-2xl font-bold mb-2">Generated DJ Set</h1>
+
+  <div class="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 mb-6">
+    <p class="text-sm text-blue-800">
+      <span class="font-semibold">BPM:</span> {{ start_bpm }} &rarr; {{ target_bpm }} &nbsp;|&nbsp;
+      <span class="font-semibold">Tracks:</span> {{ result.total_tracks }} &nbsp;|&nbsp;
+      <span class="font-semibold">Avg Score:</span> {{ result.avg_score }}
     </p>
   </div>
 
-  <table class="table">
+  <div class="bg-white rounded-lg border border-gray-200 overflow-hidden mb-6">
+  <table class="w-full text-sm">
     <thead>
-      <tr>
-        <th>#</th>
-        <th>Title</th>
-        <th>Artist</th>
-        <th>BPM</th>
-        <th>Key</th>
-        <th>Energy</th>
-        <th>Score</th>
-        <th>Transition</th>
+      <tr class="bg-gray-50 border-b border-gray-200 text-left text-xs text-gray-500 uppercase tracking-wider">
+        <th class="px-4 py-3">#</th>
+        <th class="px-4 py-3">Title</th>
+        <th class="px-4 py-3">Artist</th>
+        <th class="px-4 py-3">BPM</th>
+        <th class="px-4 py-3">Key</th>
+        <th class="px-4 py-3">E</th>
+        <th class="px-4 py-3">Score</th>
+        <th class="px-4 py-3">Transition</th>
       </tr>
     </thead>
-    <tbody>
+    <tbody class="divide-y divide-gray-100">
       {% for track in result.tracks %}
-      <tr>
-        <td>{{ loop.index }}</td>
-        <td>
-          <a href="{{ url_for('tracks.detail', track_id=track.id) }}">
+      <tr class="hover:bg-gray-50">
+        <td class="px-4 py-3 text-gray-400">{{ loop.index }}</td>
+        <td class="px-4 py-3 font-medium">
+          <a href="{{ url_for('tracks.detail', track_id=track.id) }}" class="text-gray-900 hover:text-blue-600">
             {{ track.title }}
           </a>
         </td>
-        <td>{{ track.artist }}</td>
-        <td>{{ track.bpm }}</td>
-        <td>{{ track.key }}</td>
-        <td>{{ track.energy }}</td>
-        <td>
+        <td class="px-4 py-3 text-gray-500">{{ track.artist }}</td>
+        <td class="px-4 py-3">{{ track.bpm }}</td>
+        <td class="px-4 py-3">{{ track.key }}</td>
+        <td class="px-4 py-3">{{ track.energy }}</td>
+        <td class="px-4 py-3">
           {% if track.score is defined %}
-            {{ track.score }}
+            <span class="bg-blue-100 text-blue-700 text-xs font-bold px-1.5 py-0.5 rounded">{{ track.score }}</span>
           {% else %}
-            -
+            <span class="text-gray-300">-</span>
           {% endif %}
         </td>
-        <td>
+        <td class="px-4 py-3 text-xs text-gray-400">
           {% if track.bpm_reason is defined %}
             {{ track.bpm_reason }}<br>
             {{ track.energy_reason }}
@@ -59,14 +60,17 @@
       {% endfor %}
     </tbody>
   </table>
+  </div>
 
-  <div class="actions">
-    <a href="{{ url_for('tracks.generate_set_form') }}" class="btn">
+  <div class="flex gap-2">
+    <a href="{{ url_for('tracks.generate_set_form') }}"
+      class="bg-blue-600 text-white text-sm px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">
       Generate Another Set
     </a>
-    <a href="{{ url_for('tracks.index') }}" class="btn">
+    <a href="{{ url_for('tracks.index') }}"
+      class="border border-gray-300 text-gray-700 text-sm px-4 py-2 rounded-md hover:bg-gray-50 transition-colors">
       Back to Track List
     </a>
   </div>
-</div>
+
 {% endblock %}

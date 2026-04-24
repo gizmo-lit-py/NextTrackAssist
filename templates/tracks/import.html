@@ -2,53 +2,54 @@
 
 {% block content %}
 
-<h1>rekordbox からインポート</h1>
+<div class="max-w-lg">
 
-<p>
+<h1 class="text-2xl font-bold mb-2">rekordbox からインポート</h1>
+
+<p class="text-sm text-gray-500 mb-6">
 rekordbox のエクスポートファイル（CSV または TXT）をアップロードすると、
 トラックを一括登録できます。
 </p>
 
-<h2>エクスポート方法</h2>
-<ol>
+<details class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
+<summary class="text-sm font-medium text-gray-700 cursor-pointer">エクスポート方法を見る</summary>
+<ol class="text-sm text-gray-600 mt-3 space-y-1 list-decimal list-inside">
   <li>rekordbox を開き、コレクション（ライブラリ）を表示</li>
   <li>トラックを選択（Cmd+A で全選択も可）</li>
-  <li>右クリック → 「トラック情報をエクスポート」または メニューから「ファイル → エクスポート」</li>
+  <li>右クリック → 「トラック情報をエクスポート」</li>
   <li>保存形式: <strong>テキスト (タブ区切り)</strong> または <strong>CSV</strong></li>
 </ol>
+</details>
 
-<hr>
-
-<form method="POST" action="/tracks/import" enctype="multipart/form-data">
+<form method="POST" action="/tracks/import" enctype="multipart/form-data"
+  class="bg-white rounded-lg border border-gray-200 p-6 space-y-4">
 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-<p>
-  <label for="csv_file"><strong>ファイルを選択</strong>（CSV または TXT、最大5MB）</label><br>
-  <input type="file" id="csv_file" name="csv_file" accept=".csv,.txt" required>
-</p>
+<div>
+  <label for="csv_file" class="block text-sm font-medium text-gray-700 mb-1">ファイルを選択</label>
+  <input type="file" id="csv_file" name="csv_file" accept=".csv,.txt" required
+    class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100">
+  <p class="text-xs text-gray-400 mt-1">CSV または TXT、最大5MB</p>
+</div>
 
-<p>
-  <label for="default_energy">
-    <strong>Energy のデフォルト値</strong>（1〜10）<br>
-    <small>rekordbox には Energy フィールドがないため、インポート後に個別に編集してください。</small>
-  </label><br>
-  <input
-    type="number"
-    id="default_energy"
-    name="default_energy"
-    value="5"
-    min="1"
-    max="10"
-    required
-  >
-</p>
+<div>
+  <label for="default_energy" class="block text-sm font-medium text-gray-700 mb-1">Energy のデフォルト値（1〜10）</label>
+  <input type="number" id="default_energy" name="default_energy" value="5" min="1" max="10" required
+    class="w-24 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+  <p class="text-xs text-gray-400 mt-1">rekordbox には Energy フィールドがないため、インポート後に個別に編集してください。</p>
+</div>
 
-<button type="submit">インポート開始</button>
+<button type="submit"
+  class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors font-medium">
+インポート開始
+</button>
 
 </form>
 
-<p>
-  <a href="/">← トラック一覧に戻る</a>
+<p class="mt-6">
+  <a href="/" class="text-sm text-blue-600 hover:underline">&larr; トラック一覧に戻る</a>
 </p>
+
+</div>
 
 {% endblock %}

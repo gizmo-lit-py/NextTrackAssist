@@ -2,40 +2,49 @@
 
 {% block content %}
 
-<h1>{{track.title}}</h1>
+<div class="max-w-lg">
 
-<p>
-Artist : {{track.artist}}
-</p>
+<h1 class="text-2xl font-bold mb-6">{{track.title}}</h1>
 
-<p>
-BPM : {{track.bpm}}
-</p>
+<div class="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+<div class="space-y-2 text-sm">
+  <div class="flex justify-between py-2 border-b border-gray-100">
+    <span class="text-gray-500">Artist</span>
+    <span class="font-medium">{{track.artist}}</span>
+  </div>
+  <div class="flex justify-between py-2 border-b border-gray-100">
+    <span class="text-gray-500">BPM</span>
+    <span class="font-medium">{{track.bpm}}</span>
+  </div>
+  <div class="flex justify-between py-2 border-b border-gray-100">
+    <span class="text-gray-500">Key</span>
+    <span class="font-medium">{{track.key}}</span>
+  </div>
+  <div class="flex justify-between py-2">
+    <span class="text-gray-500">Energy</span>
+    <span class="font-medium">{{track.energy}}</span>
+  </div>
+</div>
+</div>
 
-<p>
-Key : {{track.key}}
-</p>
-
-<p>
-Energy : {{track.energy}}
-</p>
-
-<a href="/tracks/{{track.id}}/edit">
-Edit
-</a>
-
-<br>
-<a href="/tracks/{{track.id}}/recommend">
+<div class="flex gap-2 flex-wrap">
+<a href="/tracks/{{track.id}}/recommend"
+  class="bg-blue-600 text-white text-sm px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">
 Recommend Next Track
 </a>
-
-<form method="POST" action="/tracks/{{track.id}}/delete">
-<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-
-<button type="submit">
-Delete
-</button>
-
+<a href="/tracks/{{track.id}}/edit"
+  class="border border-gray-300 text-gray-700 text-sm px-4 py-2 rounded-md hover:bg-gray-50 transition-colors">
+Edit
+</a>
+<form method="POST" action="/tracks/{{track.id}}/delete" class="inline">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <button type="submit"
+    class="border border-red-200 text-red-600 text-sm px-4 py-2 rounded-md hover:bg-red-50 transition-colors cursor-pointer">
+  Delete
+  </button>
 </form>
+</div>
+
+</div>
 
 {% endblock %}

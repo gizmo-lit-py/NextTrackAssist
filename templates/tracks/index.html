@@ -2,36 +2,38 @@
 
 {% block content %}
 
-<h1>Track List</h1>
-
-<p>
-使い方: 1) Add Track で楽曲を登録 2) 楽曲詳細を開く 3) Recommend Next Track で次曲候補を確認
-</p>
-
-<p>
-  <a href="/tracks/new">Add Track</a>
-  &nbsp;|&nbsp;
-  <a href="/tracks/import">rekordbox からインポート</a>
-</p>
-
-{% for track in tracks %}
-
-<div class="track">
-
-<a href="/tracks/{{track.id}}">
-{{track.title}}
-</a>
-
-- {{track.artist}}
-
+<div class="flex items-center justify-between mb-6">
+<h1 class="text-2xl font-bold">Track List</h1>
+<div class="flex gap-2">
+  <a href="/tracks/new" class="bg-blue-600 text-white text-sm px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">Add Track</a>
+  <a href="/tracks/import" class="border border-gray-300 text-gray-700 text-sm px-4 py-2 rounded-md hover:bg-gray-50 transition-colors">rekordbox Import</a>
+</div>
 </div>
 
-{% endfor %}
-
-{% if not tracks %}
-<p>
-まだトラックがありません。まずは Add Track から2曲以上登録してください。
+<p class="text-sm text-gray-500 mb-4">
+使い方: 1) Add Track で楽曲を登録 → 2) 楽曲詳細を開く → 3) Recommend Next Track で次曲候補を確認
 </p>
+
+{% if tracks %}
+<div class="bg-white rounded-lg border border-gray-200 divide-y divide-gray-100">
+{% for track in tracks %}
+<a href="/tracks/{{track.id}}" class="flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition-colors group">
+  <div>
+    <span class="font-medium text-gray-900 group-hover:text-blue-600">{{track.title}}</span>
+    <span class="text-gray-400 ml-2">{{track.artist}}</span>
+  </div>
+  <div class="text-xs text-gray-400 flex gap-3">
+    <span>{{track.bpm}} BPM</span>
+    <span>{{track.key}}</span>
+    <span>E{{track.energy}}</span>
+  </div>
+</a>
+{% endfor %}
+</div>
+{% else %}
+<div class="bg-white rounded-lg border border-gray-200 p-8 text-center text-gray-400">
+まだトラックがありません。まずは Add Track から2曲以上登録してください。
+</div>
 {% endif %}
 
 {% endblock %}

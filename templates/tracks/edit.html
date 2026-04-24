@@ -2,45 +2,50 @@
 
 {% block content %}
 
-<h1>Edit Track</h1>
+<div class="max-w-lg">
 
-<form method="POST" action="/tracks/{{track.id}}/update">
+<h1 class="text-2xl font-bold mb-6">Edit Track</h1>
+
+<form method="POST" action="/tracks/{{track.id}}/update" class="bg-white rounded-lg border border-gray-200 p-6 space-y-4">
 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-<p>
-Title
-<br>
-<input name="title" value="{{track.title}}" required>
-</p>
+<div>
+<label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+<input name="title" value="{{track.title}}" required
+  class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+</div>
 
-<p>
-Artist
-<br>
-<input name="artist" value="{{track.artist}}" required>
-</p>
+<div>
+<label class="block text-sm font-medium text-gray-700 mb-1">Artist</label>
+<input name="artist" value="{{track.artist}}" required
+  class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+</div>
 
-<p>
-BPM
-<br>
-<input name="bpm" type="number" min="40" max="250" value="{{track.bpm}}" required>
-</p>
+<div class="grid grid-cols-3 gap-4">
+<div>
+  <label class="block text-sm font-medium text-gray-700 mb-1">BPM</label>
+  <input name="bpm" type="number" min="40" max="250" value="{{track.bpm}}" required
+    class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+</div>
+<div>
+  <label class="block text-sm font-medium text-gray-700 mb-1">Key</label>
+  <input name="key" value="{{track.key}}" pattern="^(1[0-2]|[1-9])[AaBb]$" required
+    class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+</div>
+<div>
+  <label class="block text-sm font-medium text-gray-700 mb-1">Energy</label>
+  <input name="energy" type="number" min="1" max="10" value="{{track.energy}}" required
+    class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+</div>
+</div>
 
-<p>
-Key
-<br>
-<input name="key" value="{{track.key}}" pattern="^(1[0-2]|[1-9])[AaBb]$" required>
-</p>
-
-<p>
-Energy
-<br>
-<input name="energy" type="number" min="1" max="10" value="{{track.energy}}" required>
-</p>
-
-<button type="submit">
+<button type="submit"
+  class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors font-medium">
 Update
 </button>
 
 </form>
+
+</div>
 
 {% endblock %}

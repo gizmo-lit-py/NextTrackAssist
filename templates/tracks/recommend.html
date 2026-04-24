@@ -2,61 +2,58 @@
 
 {% block content %}
 
-<h1>Recommendations</h1>
+<h1 class="text-2xl font-bold mb-2">Recommendations</h1>
 
-<h2>Base Track</h2>
-
-<p>
-{{ base_track.title }} / {{ base_track.artist }}<br>
-BPM: {{base_track.bpm}} &nbsp;|&nbsp; Key: {{base_track.key}} &nbsp;|&nbsp; Energy: {{base_track.energy}}
+<div class="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 mb-6">
+<p class="text-sm">
+  <span class="font-semibold text-blue-900">{{ base_track.title }}</span>
+  <span class="text-blue-600">/ {{ base_track.artist }}</span>
+  <br>
+  <span class="text-blue-700 text-xs">BPM: {{base_track.bpm}} | Key: {{base_track.key}} | Energy: {{base_track.energy}}</span>
 </p>
+</div>
 
-<hr>
+<h2 class="text-lg font-semibold mb-4">Next Tracks</h2>
 
-<h2>Next Tracks</h2>
-
+<div class="space-y-4">
 {% for rec in recommendations %}
+<div class="bg-white rounded-lg border border-gray-200 p-4">
 
-<div class="track">
+<div class="flex items-start justify-between mb-2">
+  <div>
+    <a href="/tracks/{{rec.id}}" class="font-semibold text-gray-900 hover:text-blue-600">{{rec.title}}</a>
+    <span class="text-gray-400 ml-1">- {{rec.artist}}</span>
+    <div class="text-xs text-gray-400 mt-0.5">BPM: {{rec.bpm}} | Key: {{rec.key}} | Energy: {{rec.energy}}</div>
+  </div>
+  <span class="bg-blue-100 text-blue-700 text-xs font-bold px-2 py-1 rounded" title="総合スコア">Score {{rec.total_score}}</span>
+</div>
 
-<p>
-<strong><a href="/tracks/{{rec.id}}">{{rec.title}}</a></strong> - {{rec.artist}}<br>
-BPM: {{rec.bpm}} &nbsp;|&nbsp; Key: {{rec.key}} &nbsp;|&nbsp; Energy: {{rec.energy}}
-</p>
-
-<p>
-<strong>総合スコア: {{rec.total_score}}</strong>
-</p>
-
-<table style="border-collapse:collapse; font-size:0.9em; margin-bottom:6px;">
-<tr>
-  <th style="text-align:left; padding:2px 12px 2px 0;">BPM</th>
-  <td style="padding:2px 12px 2px 0;">{{rec.bpm_score}}</td>
-  <td>{{rec.bpm_reason}}</td>
+<table class="w-full text-xs text-gray-600 mb-2">
+<tr class="border-b border-gray-50">
+  <td class="font-medium py-1 w-16">BPM</td>
+  <td class="py-1 w-12">{{rec.bpm_score}}</td>
+  <td class="py-1 text-gray-400">{{rec.bpm_reason}}</td>
+</tr>
+<tr class="border-b border-gray-50">
+  <td class="font-medium py-1">Energy</td>
+  <td class="py-1">{{rec.energy_score}}</td>
+  <td class="py-1 text-gray-400">{{rec.energy_reason}}</td>
 </tr>
 <tr>
-  <th style="text-align:left; padding:2px 12px 2px 0;">Energy</th>
-  <td style="padding:2px 12px 2px 0;">{{rec.energy_score}}</td>
-  <td>{{rec.energy_reason}}</td>
-</tr>
-<tr>
-  <th style="text-align:left; padding:2px 12px 2px 0;">Key</th>
-  <td style="padding:2px 12px 2px 0;">{{rec.key_score}}</td>
-  <td>{{rec.key_reason}}</td>
+  <td class="font-medium py-1">Key</td>
+  <td class="py-1">{{rec.key_score}}</td>
+  <td class="py-1 text-gray-400">{{rec.key_reason}}</td>
 </tr>
 </table>
 
-<p style="color:#555;">
-Hint: {{rec.transition_tip}}
-</p>
+<p class="text-xs text-gray-400 italic">{{rec.transition_tip}}</p>
 
 </div>
-<hr>
-
 {% endfor %}
+</div>
 
-<p>
-<a href="/tracks/{{base_track.id}}">Back to Detail</a>
+<p class="mt-6">
+<a href="/tracks/{{base_track.id}}" class="text-sm text-blue-600 hover:underline">&larr; Back to Detail</a>
 </p>
 
 {% endblock %}
