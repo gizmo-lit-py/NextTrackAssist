@@ -6,6 +6,8 @@
 # フロントエンドや外部サービスから利用する。
 # ==========================================
 
+import logging
+
 from flask import Blueprint, g, jsonify, request
 
 from app.extensions import SessionLocal
@@ -15,6 +17,7 @@ from app.services.score import calc_total_score
 from app.services.set_generator import generate_dj_set
 from app.utils.auth import login_required
 
+logger=logging.getLogger(__name__)
 
 api_bp = Blueprint("api", __name__, url_prefix="/api")
 
@@ -104,8 +107,13 @@ def import_tracks_api():
         ]
         db.bulk_save_objects(track_objects)
         db.commit()
+        logger.info(
+            "API CSVインポート完了: %s件登録, %s件スキップ (user=%s)",
+            result["imported"], result["skipped"], g.current_user.id,
+        ) 
     except Exception:
         db.rollback()
+        logger.exception("API CSVインポートに失敗 (user=%s)", g.current_user.id)
         raise
     finally:
         db.close()

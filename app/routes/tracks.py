@@ -1,3 +1,4 @@
+import logging
 from flask import Blueprint, abort, flash, g, redirect, render_template, request, url_for
 
 from app.extensions import SessionLocal
@@ -7,6 +8,7 @@ from app.services.score import calc_total_score, parse_camelot
 from app.services.set_generator import generate_dj_set
 from app.utils.auth import login_required
 
+logger =logging.getLogger(__name__)
 
 tracks_bp = Blueprint("tracks", __name__)
 
@@ -113,8 +115,10 @@ def create_track():
         track = Track(**payload, user_id=g.current_user.id)
         db.add(track)
         db.commit()
+        logger.info("トラック作成: id=%s, user=%s", track.id, g.current_user.id)
     except Exception:
         db.rollback()
+        logger.exception("トラック作成に失敗(user=%s)",g.current_user.id)
         raise
     finally:
         db.close()
@@ -176,8 +180,10 @@ def update(track_id):
         track.key = payload["key"]
         track.energy = payload["energy"]
         db.commit()
+        logger.info("トラック更新: id=%s, user=%s", track_id, g.current_user.id)
     except Exception:
         db.rollback()
+        logger.exception("トラック更新に失敗 (id=%s, user=%s)", track_id, g.current_user.id)
         raise
     finally:
         db.close()
@@ -198,8 +204,10 @@ def delete(track_id):
 
         db.delete(track)
         db.commit()
+        logger.info("トラック削除: id=%s, user=%s", track_id, g.current_user.id)
     except Exception:
         db.rollback()
+        logger.exception("トラック削除に失敗 (id=%s, user=%s)", track_id, g.current_user.id)
         raise
     finally:
         db.close()
@@ -275,8 +283,13 @@ def import_tracks():
         ]
         db.bulk_save_objects(track_objects)
         db.commit()
+        logger.info(
+            "CSVインポート完了: %s件登録, %s件スキップ (user=%s)",
+            result["imported"], result["skipped"], g.current_user.id,
+        )
     except Exception:
         db.rollback()
+        logger.exception("CSVインポートに失敗 (user=%s)", g.current_user.id)
         raise
     finally:
         db.close()

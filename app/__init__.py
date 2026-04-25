@@ -1,3 +1,5 @@
+import logging 
+
 from flask import Flask, render_template
 from flask_wtf.csrf import CSRFProtect
 import os
@@ -13,6 +15,13 @@ csrf = CSRFProtect()
 
 
 def create_app():
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    )
+    logger = logging.getLogger(__name__)
+
 
     template_dir = os.path.abspath(
         os.path.join(os.path.dirname(__file__), "../templates")
@@ -44,6 +53,9 @@ def create_app():
 
     @app.errorhandler(500)
     def internal_error(e):
+        logger.error("500 Internal Server Error: %s", e)
         return render_template("errors/500.html"), 500
+    
+    logger.info("App created (env=%s)", app.config.get("ENV", "production"))
 
     return app
