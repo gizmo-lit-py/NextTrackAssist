@@ -13,35 +13,47 @@ DEFAULT_WEIGHTS = {
     "key": 0.10
 }
 
+# BPM差がこの値より大きい候補は推薦から除外する。
+# （6.0 ちょうどは含む / 6.0001 以上は除外）
+BPM_EXCLUSION_THRESHOLD = 6.0
+
 
 # ==============================
 # BPMスコア
 # ==============================
 
-def calc_bpm_score(base_bpm: int, cand_bpm: int):
-    if not isinstance(base_bpm, int) or not isinstance(cand_bpm, int):
-        raise ValueError("BPM must be integer")
+def calc_bpm_score(base_bpm, cand_bpm):
+    """
+    BPMの近さからスコアを返す。
 
-    diff = abs(base_bpm - cand_bpm)
+    Returns:
+        (score, diff)
+        - score: 0〜100 の整数。
+                 BPM差が BPM_EXCLUSION_THRESHOLD（6.0）を超える場合は None。
+        - diff:  abs(base - cand) を float で返す（整数BPMでも float）。
+    """
+    if not isinstance(base_bpm, (int, float)) or isinstance(base_bpm, bool):
+        raise ValueError("BPM must be a number (int or float)")
+    if not isinstance(cand_bpm, (int, float)) or isinstance(cand_bpm, bool):
+        raise ValueError("BPM must be a number (int or float)")
 
-    if diff <= 2:
+    diff = abs(float(base_bpm) - float(cand_bpm))
+
+    # 6.0 を超えたら推薦から除外（None を返す）
+    if diff > BPM_EXCLUSION_THRESHOLD:
+        return None, diff
+
+    # 既存のスコア帯を float 対応の閾値ベースに置き換え
+    if diff <= 2.0:
         score = 100
-    elif diff == 3:
+    elif diff <= 3.0:
         score = 90
-    elif diff == 4:
+    elif diff <= 4.0:
         score = 80
-    elif diff == 5:
+    elif diff <= 5.0:
         score = 70
-    elif diff == 6:
+    else:  # 5.0 < diff <= 6.0
         score = 60
-    elif diff == 7:
-        score = 40
-    elif diff == 8:
-        score = 20
-    elif diff == 9:
-        score = 5
-    else:
-        score = 0
 
     return score, diff
 
@@ -135,16 +147,25 @@ def calc_key_score(base_key: str, cand_key: str):
 # 理由文
 # ==============================
 
-def bpm_reason(diff: int) -> str:
-    """BPM差分から日本語の評価文を返す。"""
-    if diff <= 2:
-        return f"差分{diff} → ほぼ一致（ロングミックス向き）"
-    elif diff <= 5:
-        return f"差分{diff} → 許容範囲（軽いピッチ調整で対応可）"
-    elif diff <= 8:
-        return f"差分{diff} → やや離れている（ブレイク・カットイン推奨）"
+def _format_diff(diff) -> str:
+    """整数値ならそのまま、小数なら小数第1位まで表示する。"""
+    if isinstance(diff, (int, float)) and float(diff).is_integer():
+        return str(int(diff))
+    return f"{diff:.1f}"
+
+
+def bpm_reason(diff) -> str:
+    """BPM差分から日本語の評価文を返す。int / float 両対応。"""
+    d = float(diff)
+    label = _format_diff(diff)
+    if d <= 2.0:
+        return f"差分{label} → ほぼ一致（ロングミックス向き）"
+    elif d <= 5.0:
+        return f"差分{label} → 許容範囲（軽いピッチ調整で対応可）"
+    elif d <= BPM_EXCLUSION_THRESHOLD:
+        return f"差分{label} → やや離れている（ブレイク・カットイン推奨）"
     else:
-        return f"差分{diff} → 大きくズレている（テンポチェンジ向き）"
+        return f"差分{label} → BPM差が大きすぎるため推薦対象外"
 
 
 def energy_reason(diff: int) -> str:
@@ -178,6 +199,12 @@ def key_reason(score: int) -> str:
 # ==============================
 
 def calc_total_score(base: dict, cand: dict, weights: dict = DEFAULT_WEIGHTS):
+    """
+    総合スコアを計算する。
+
+    BPM差が BPM_EXCLUSION_THRESHOLD（6.0）を超える場合は
+    推薦対象外とみなし、None を返す。呼び出し側でフィルタすること。
+    """
 
     required_fields = ["bpm", "energy", "key"]
 
@@ -186,6 +213,11 @@ def calc_total_score(base: dict, cand: dict, weights: dict = DEFAULT_WEIGHTS):
             raise ValueError(f"Missing required field: {field}")
 
     bpm_score, bpm_diff = calc_bpm_score(base["bpm"], cand["bpm"])
+
+    # BPM差が大きすぎる候補は推薦対象外
+    if bpm_score is None:
+        return None
+
     energy_score = calc_energy_score(base["energy"], cand["energy"])
     key_score = calc_key_score(base["key"], cand["key"])
 

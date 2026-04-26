@@ -44,17 +44,38 @@ def test_bpm_diff_3():
 
 
 def test_bpm_diff_6():
-    """BPM差分6 → スコア60（やや離れている帯域）。"""
+    """BPM差分6 → スコア60（境界値、まだ推薦対象内）。"""
     score, diff = calc_bpm_score(128, 134)
     assert score == 60
     assert diff == 6
 
 
-def test_bpm_diff_10_plus():
-    """BPM差分10以上 → スコア0（推薦から除外相当）。"""
+def test_bpm_diff_above_threshold_excluded():
+    """BPM差分が 6.0 を超える → score=None（推薦から除外）。"""
     score, diff = calc_bpm_score(128, 139)
-    assert score == 0
+    assert score is None
     assert diff == 11
+
+
+def test_bpm_diff_just_above_six_excluded():
+    """BPM差分 6.5 → 除外される（しきい値 6.0 超）。"""
+    score, diff = calc_bpm_score(128.0, 134.5)
+    assert score is None
+    assert diff == 6.5
+
+
+def test_bpm_float_input_supported():
+    """BPM が float でも計算できる（80.5 など）。"""
+    score, diff = calc_bpm_score(80.5, 82.0)
+    assert score == 100  # 差分 1.5 は ≤2 の帯域
+    assert diff == 1.5
+
+
+def test_bpm_float_diff_45_to_5():
+    """BPM 差分 4.5 → スコア70 の帯域に入る。"""
+    score, diff = calc_bpm_score(128.0, 132.5)
+    assert score == 70
+    assert diff == 4.5
 
 
 def test_bpm_score_is_symmetric():
@@ -63,6 +84,15 @@ def test_bpm_score_is_symmetric():
     score_b, diff_b = calc_bpm_score(125, 130)
     assert score_a == score_b
     assert diff_a == diff_b
+
+
+def test_bpm_invalid_type():
+    """BPM が数値でない場合は ValueError。"""
+    import pytest as _pytest
+    with _pytest.raises(ValueError):
+        calc_bpm_score("128", 130)
+    with _pytest.raises(ValueError):
+        calc_bpm_score(True, 130)  # bool は弾く
 
 
 # ==============================
@@ -178,14 +208,41 @@ def test_total_score():
 def test_total_score_bpm_weighted():
     """BPM差分が大きい候補は低スコアになること（BPM 最重視の設計確認）。"""
     base = {"bpm": 128, "key": "8A", "energy": 6}
-    bad_bpm = {"bpm": 142, "key": "8A", "energy": 6}   # BPM差14
-    good_bpm = {"bpm": 128, "key": "1A", "energy": 1}  # BPM完全一致、他が低い
+    # BPM差6（しきい値ぎりぎり、スコア60）。Energy/Key は完全一致。
+    bad_bpm = {"bpm": 134, "key": "8A", "energy": 6}
+    # BPM完全一致だが、Energy と Key は離れている
+    good_bpm = {"bpm": 128, "key": "1A", "energy": 1}
 
     result_bad = calc_total_score(base, bad_bpm)
     result_good = calc_total_score(base, good_bpm)
 
     # BPM一致の方が、他の指標が悪くてもスコアが高いことを確認
+    assert result_bad is not None
+    assert result_good is not None
     assert result_good["total_score"] > result_bad["total_score"]
+
+
+def test_total_score_excluded_when_bpm_diff_too_large():
+    """BPM差分が 6.0 を超える候補は None を返す（推薦から除外）。"""
+    base = {"bpm": 128, "key": "8A", "energy": 6}
+    far_bpm = {"bpm": 142, "key": "8A", "energy": 6}  # BPM差14
+    assert calc_total_score(base, far_bpm) is None
+
+
+def test_total_score_excluded_just_above_threshold():
+    """BPM差分が 6.01 でも除外される（しきい値ちょうど 6.0 は許容）。"""
+    base = {"bpm": 128.0, "key": "8A", "energy": 6}
+    just_above = {"bpm": 134.5, "key": "8A", "energy": 6}  # 差6.5
+    assert calc_total_score(base, just_above) is None
+
+
+def test_total_score_with_float_bpm():
+    """float BPM でも total_score を計算できる。"""
+    base = {"bpm": 128.5, "key": "8A", "energy": 6}
+    cand = {"bpm": 130.0, "key": "8A", "energy": 6}  # 差1.5
+    result = calc_total_score(base, cand)
+    assert result is not None
+    assert result["total_score"] > 0
 
 
 def test_total_score_returns_reason_fields():
@@ -219,8 +276,20 @@ def test_bpm_reason_moderate():
 
 
 def test_bpm_reason_far():
-    """BPM差分9以上 → '大きくズレている' を含むこと。"""
-    assert "大きくズレている" in bpm_reason(9)
+    """BPM差分が 6.0 を超える → '推薦対象外' を含むこと。"""
+    assert "推薦対象外" in bpm_reason(9)
+
+
+def test_bpm_reason_borderline_six():
+    """BPM差分が 5 < diff <= 6 → 'やや離れている' 帯域。"""
+    assert "やや離れている" in bpm_reason(6)
+    assert "やや離れている" in bpm_reason(5.5)
+
+
+def test_bpm_reason_float_format():
+    """float の差分は小数1桁で表示される。"""
+    assert "差分1.5" in bpm_reason(1.5)
+    assert "差分3" in bpm_reason(3.0)  # 整数値の float は整数表示
 
 
 def test_energy_reason_exact():

@@ -174,6 +174,9 @@ def recommend_api(track_id):
             base_payload,
             {"bpm": cand.bpm, "energy": cand.energy, "key": cand.key},
         )
+        # BPM差が大きすぎる候補（result is None）は推薦から除外する
+        if result is None:
+            continue
         recommendations.append({
             "id": cand.id,
             "title": cand.title,
@@ -237,11 +240,12 @@ def generate_set_api():
         return jsonify({"error": "JSON body is required"}), 400
 
     try:
-        start_bpm = int(data.get("start_bpm", 0))
-        target_bpm = int(data.get("target_bpm", 0))
+        # BPM は小数も可（例: 124.5）。num_tracks のみ整数。
+        start_bpm = float(data.get("start_bpm", 0))
+        target_bpm = float(data.get("target_bpm", 0))
         num_tracks = int(data.get("num_tracks", 0))
     except (ValueError, TypeError):
-        return jsonify({"error": "start_bpm, target_bpm, num_tracks must be integers"}), 400
+        return jsonify({"error": "start_bpm/target_bpm must be numbers, num_tracks must be integer"}), 400
 
     if not (40 <= start_bpm <= 250):
         return jsonify({"error": "start_bpm must be between 40 and 250"}), 400

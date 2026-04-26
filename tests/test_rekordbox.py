@@ -119,7 +119,8 @@ class TestParseNormal:
         track = result["tracks"][0]
         assert track["title"] == "Insomnia"
         assert track["artist"] == "Faithless"
-        assert track["bpm"] == 136           # 小数点なし整数に変換されている
+        assert track["bpm"] == 136.0         # float として保持される
+        assert isinstance(track["bpm"], float)
         assert track["key"] == "8A"
         assert track["energy"] == 5          # デフォルト値
 
@@ -142,11 +143,12 @@ class TestParseNormal:
         assert result["imported"] == 3
         assert result["skipped"] == 0
 
-    def test_bpm_float_to_int(self):
-        """BPM が小数点付き文字列（"136.5"）でも整数（136）に変換される。"""
+    def test_bpm_float_preserved(self):
+        """BPM が小数点付き文字列（"136.5"）の場合、小数のまま保持される。"""
         data = make_tsv("1\tTitle\tArtist\t136.5\t8A")
         result = parse_rekordbox_csv(data)
-        assert result["tracks"][0]["bpm"] == 136
+        assert result["tracks"][0]["bpm"] == 136.5
+        assert isinstance(result["tracks"][0]["bpm"], float)
 
     def test_custom_default_energy(self):
         """default_energy を指定した場合、その値が使われる。"""

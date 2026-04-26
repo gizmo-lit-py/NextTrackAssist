@@ -15,23 +15,24 @@ from app.services.score import calc_total_score
 # BPMカーブ制御
 # ==============================
 
-def _expected_bpm(current_bpm: int, target_bpm: int, remaining_steps: int) -> float:
+def _expected_bpm(current_bpm, target_bpm, remaining_steps: int) -> float:
     """
     残りステップ数に応じて「次の曲で期待されるBPM」を計算。
+    BPM は int / float どちらでも受け付ける。
     例: current=126, target=134, remaining=4
         → 126 + (134-126)/4 = 128.0
     """
     if remaining_steps <= 0:
         return float(target_bpm)
-    return current_bpm + (target_bpm - current_bpm) / remaining_steps
+    return float(current_bpm) + (float(target_bpm) - float(current_bpm)) / remaining_steps
 
 
-def _bpm_curve_penalty(cand_bpm: int, expected_bpm: float) -> float:
+def _bpm_curve_penalty(cand_bpm, expected_bpm: float) -> float:
     """
     候補曲のBPMが期待BPMからズレている場合のペナルティ（0〜30点）。
-    ズレが大きいほど total_score から減算される。
+    ズレが大きいほど total_score から減算される。BPM は int / float 両対応。
     """
-    diff = abs(cand_bpm - expected_bpm)
+    diff = abs(float(cand_bpm) - float(expected_bpm))
     return min(diff * 3, 30)
 
 
@@ -42,8 +43,8 @@ def _bpm_curve_penalty(cand_bpm: int, expected_bpm: float) -> float:
 def generate_dj_set(
     db,
     user_id: int,
-    start_bpm: int,
-    target_bpm: int,
+    start_bpm,
+    target_bpm,
     num_tracks: int,
 ) -> dict:
     """
@@ -91,7 +92,7 @@ def generate_dj_set(
         )
 
     # ---- 開始曲を選ぶ: start_bpm に最も近い曲 ----
-    first = min(pool, key=lambda t: abs(t.bpm - start_bpm))
+    first = min(pool, key=lambda t: abs(float(t.bpm) - float(start_bpm)))
     selected = [first]
     used_ids = {first.id}
     scores = []
@@ -121,6 +122,10 @@ def generate_dj_set(
                 {"bpm": cand.bpm, "energy": cand.energy, "key": cand.key},
             )
 
+            # BPM差が大きすぎる候補（result is None）はセット候補から除外
+            if result is None:
+                continue
+
             # BPMカーブへの追従ボーナス/ペナルティ
             penalty = _bpm_curve_penalty(cand.bpm, expected)
             adjusted = result["total_score"] - penalty
@@ -131,6 +136,7 @@ def generate_dj_set(
                 best_result = result
 
         if best_cand is None:
+            # BPM差6以下の候補が尽きたらセット構築を打ち切る
             break
 
         selected.append(best_cand)

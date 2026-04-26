@@ -24,7 +24,8 @@ def _validate_track_form(form):
         return None, "Artist は必須です。"
 
     try:
-        bpm = int(form.get("bpm", ""))
+        # BPM は小数も許容（例: 80.5）。整数値を入れても float として扱う。
+        bpm = float(form.get("bpm", ""))
     except ValueError:
         return None, "BPM は数値で入力してください。"
 
@@ -53,9 +54,11 @@ def _validate_track_form(form):
 
 
 def _build_transition_tip(base_energy, cand_energy, bpm_diff):
-    if bpm_diff <= 2:
+    # bpm_diff は float でも来る前提
+    diff = float(bpm_diff)
+    if diff <= 2.0:
         bpm_tip = "テンポ差が小さいのでロングミックス向き"
-    elif bpm_diff <= 5:
+    elif diff <= 5.0:
         bpm_tip = "軽いピッチ調整で自然につなげやすい"
     else:
         bpm_tip = "テンポ差が大きいのでブレイクやカットイン向き"
@@ -342,6 +345,9 @@ def recommend(track_id):
             base_payload,
             {"bpm": cand.bpm, "energy": cand.energy, "key": cand.key},
         )
+        # BPM差が大きすぎる候補（result is None）は推薦から除外する
+        if result is None:
+            continue
         recommendations.append(
             {
                 "id": cand.id,
@@ -393,8 +399,9 @@ def generate_set():
     """
 
     try:
-        start_bpm = int(request.form.get("start_bpm", ""))
-        target_bpm = int(request.form.get("target_bpm", ""))
+        # BPM は小数も可（例: 124.5）
+        start_bpm = float(request.form.get("start_bpm", ""))
+        target_bpm = float(request.form.get("target_bpm", ""))
         num_tracks = int(request.form.get("num_tracks", ""))
     except ValueError:
         flash("BPMとトラック数は数値で入力してください。", "error")

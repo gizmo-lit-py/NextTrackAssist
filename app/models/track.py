@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, CheckConstraint, ForeignKey
+from sqlalchemy import Column, Integer, Float, String, CheckConstraint, ForeignKey
 from sqlalchemy.orm import relationship
 from app.extensions import Base
 
@@ -14,8 +14,9 @@ class Track(Base):
 
     artist = Column(String(255), nullable=False)
 
+    # BPM は小数も許容（例: 80.5）。整数値もそのまま保存可能。
     bpm = Column(
-        Integer,
+        Float,
         nullable=False
     )
 

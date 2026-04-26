@@ -263,9 +263,9 @@ def parse_rekordbox_csv(file_bytes: bytes, default_energy: int = DEFAULT_ENERGY)
         if not artist:
             artist = "Unknown"
 
-        # -- BPM 変換（"136.0" → 136）--
+        # -- BPM 変換（"136.0" → 136.0、小数も保持）--
         try:
-            bpm = int(float(raw_bpm))
+            bpm = float(raw_bpm)
         except (ValueError, TypeError):
             skipped += 1
             skip_reasons.append(f"行{row_no}: BPM '{raw_bpm}' が数値でないためスキップ")
