@@ -20,6 +20,7 @@ from app.models.user import User   # noqa: F401 - Base への登録に必要
 # Python のモジュール名は数字で始められないので importlib で動的にロードする。
 ADDITIONAL_MIGRATION_MODULES = [
     "migrations.002_bpm_float",
+    "migrations.003_key_constraint",
 ]
 ADDITIONAL_MIGRATIONS = [importlib.import_module(name) for name in ADDITIONAL_MIGRATION_MODULES]
 

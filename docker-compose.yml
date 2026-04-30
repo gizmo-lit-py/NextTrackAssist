@@ -28,7 +28,9 @@ services:
     ports:
       - "80:80"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      # ローカル開発用: HTTP のみ、http://localhost で繋がる
+      # 本番運用は docker-compose.prod.yml で prod.conf に差し替える
+      - ./nginx/dev.conf:/etc/nginx/conf.d/default.conf
     depends_on:
       - web
 

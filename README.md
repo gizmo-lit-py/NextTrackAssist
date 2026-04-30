@@ -268,9 +268,9 @@ tracks
 ├── user_id     INTEGER  FK → users.id  (CASCADE DELETE) / INDEX
 ├── title       VARCHAR(255)
 ├── artist      VARCHAR(255)
-├── bpm         FLOAT    CHECK(40 <= bpm <= 250)   -- 小数点対応（例: 128.5）
-├── key         VARCHAR(3)   Camelot形式 例: 8A, 11B
-└── energy      INTEGER  CHECK(1 <= energy <= 10)
+├── bpm         FLOAT        CHECK(40 <= bpm <= 250)               -- 小数点対応（例: 128.5）
+├── key         VARCHAR(3)   CHECK(key IN ('1A','1B',...,'12A','12B'))  -- Camelot 24値のみ
+└── energy      INTEGER      CHECK(1 <= energy <= 10)
 ```
 
 ### 制約の設計意図
@@ -278,7 +278,7 @@ tracks
 - `bpm` は `FLOAT`：rekordbox の書き出し（`128.5` など）が小数のまま保持できるよう変更。整数値もそのまま保存可能
 - `bpm BETWEEN 40 AND 250`：実際の楽曲のBPM帯をカバーする現実的な範囲
 - `energy BETWEEN 1 AND 10`：DJツールの一般的なエネルギースケールに合わせた設計
-- `key` はCamelot記法（1A〜12B）に統一：Mixkey / Rekordbox との互換性を意識
+- `key` はCamelot記法（1A〜12B）に統一：Mixkey / Rekordbox との互換性を意識。**DB側でも `IN (...)` の CHECK 制約**を入れて、アプリを経由しない直接 INSERT でも不正値が入らないようにしている（regex は方言差が大きいので 24 値の列挙で表現）
 - `CASCADE DELETE`：ユーザー削除時にトラックも連動削除し、孤立レコードを防ぐ
 
 ---
@@ -323,7 +323,8 @@ NextTrackAssist/
 │       └── 500.html
 ├── migrations/
 │   ├── 001_initial.py       # 初回テーブル作成マイグレーション
-│   └── 002_bpm_float.py     # tracks.bpm を INTEGER → FLOAT に変更（冪等・SQLite/PG/MySQL対応）
+│   ├── 002_bpm_float.py     # tracks.bpm を INTEGER → FLOAT に変更（冪等・SQLite/PG/MySQL対応）
+│   └── 003_key_constraint.py # tracks.key に Camelot 24値の CHECK 制約を追加（冪等）
 ├── scripts/
 │   ├── migrate.py           # Docker起動時マイグレーション実行スクリプト
 │   └── init_db.py           # DB接続確認スクリプト
@@ -337,12 +338,14 @@ NextTrackAssist/
 │   ├── test_set_generator.py # セット生成ロジック単体テスト
 │   └── test_api.py           # REST APIエンドポイントテスト
 ├── nginx/
-│   └── nginx.conf           # Nginx SSL終端リバースプロキシ設定
+│   ├── dev.conf             # ローカル開発用：HTTP のみ・http://localhost で繋がる
+│   └── prod.conf            # 本番用：HTTPS + Let's Encrypt 前提のリバースプロキシ
 ├── .github/
 │   └── workflows/
 │       └── ci.yml           # GitHub Actions（push 時に pytest 自動実行）
 ├── Dockerfile
-├── docker-compose.yml
+├── docker-compose.yml       # 既定構成（dev nginx + Postgres + Flask）
+├── docker-compose.prod.yml  # 本番オーバーライド（443公開・prod.conf・Let's Encrypt）
 ├── requirements.txt
 └── pytest.ini
 ```
@@ -368,6 +371,17 @@ docker-compose up --build
 ```
 
 ブラウザで `http://localhost` にアクセスしてください。
+（既定の `docker-compose.yml` は `nginx/dev.conf` をマウントし、HTTP のみ・ドメイン/証明書不要でローカルにそのまま立ち上がる構成になっています。）
+
+### 本番デプロイ（HTTPS + Let's Encrypt）
+
+本番運用では `docker-compose.prod.yml` を上から重ねて起動します。`443` を公開し、`nginx/prod.conf`（HTTPS リバースプロキシ）に切り替わります。
+
+```bash
+# nginx/prod.conf 内の your-domain.com を実ドメインに置換
+# Let's Encrypt 証明書を /etc/letsencrypt/live/<domain>/ に配置
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+```
 
 ### 環境変数
 
