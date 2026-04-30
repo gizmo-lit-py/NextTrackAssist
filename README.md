@@ -6,6 +6,9 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue?logo=postgresql)
 ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker)
 ![pytest](https://img.shields.io/badge/tested%20with-pytest-yellow?logo=pytest)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Railway-7B2FBE?logo=railway)](https://nexttrackassist-production.up.railway.app)
+
+**🚀 [Live Demo → nexttrackassist-production.up.railway.app](https://nexttrackassist-production.up.railway.app)**
 
 **NextTrackAssist** は、DJの次曲選択を支援するスコアリング型Webアプリケーションです。
 
