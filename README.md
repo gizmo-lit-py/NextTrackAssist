@@ -332,14 +332,12 @@ NextTrackAssist/
 │   ├── migrate.py           # Docker起動時マイグレーション実行スクリプト
 │   └── init_db.py           # DB接続確認スクリプト
 ├── tests/
-│   ├── conftest.py           # pytest フィクスチャ（SQLite インメモリ）
-│   ├── test_app.py           # アプリ全体・データ分離テスト
-│   ├── test_auth.py          # 認証テスト
-│   ├── test_tracks.py        # トラック CRUD・推薦テスト
-│   ├── test_score.py         # スコアリングロジック単体テスト
-│   ├── test_rekordbox.py     # rekordbox CSVパーサー単体テスト
-│   ├── test_set_generator.py # セット生成ロジック単体テスト
-│   └── test_api.py           # REST APIエンドポイントテスト
+│   ├── conftest.py      # pytest フィクスチャ（SQLite インメモリ）
+│   ├── test_app.py      # アプリ設定・データ分離テスト
+│   ├── test_auth.py     # 認証テスト（登録・ログイン・ログアウト）
+│   ├── test_tracks.py   # トラック CRUD・バリデーション・認可テスト
+│   ├── test_score.py    # スコアリングロジック単体テスト
+│   └── test_api.py      # REST APIエンドポイントテスト
 ├── nginx/
 │   ├── dev.conf             # ローカル開発用：HTTP のみ・http://localhost で繋がる
 │   └── prod.conf            # 本番用：HTTPS + Let's Encrypt 前提のリバースプロキシ
@@ -428,14 +426,22 @@ pytest tests/ -v
 ```
 
 ```
-tests/test_app.py             ...   # データ分離・スコープテスト
-tests/test_auth.py            ......  # 認証テスト
-tests/test_score.py           ...............  # スコアリングロジック単体テスト
-tests/test_tracks.py          ..............  # CRUD・推薦・バリデーションテスト
-tests/test_rekordbox.py       .................  # rekordbox CSVパーサー単体テスト
-tests/test_set_generator.py   ........  # セット生成ロジック単体テスト
-tests/test_api.py             ..........  # REST APIエンドポイントテスト
+tests/test_app.py      ...   # アプリ設定・データ分離テスト
+tests/test_auth.py     ......  # 認証テスト（登録・ログイン・ログアウト）
+tests/test_tracks.py   ......  # トラック CRUD・バリデーション・認可テスト
+tests/test_score.py    .....   # スコアリングロジック単体テスト
+tests/test_api.py      ...     # REST APIエンドポイントテスト
 ```
+
+### テスト構成の方針
+
+| ファイル | 観点 |
+|---|---|
+| test_auth.py | 登録・ログイン・ログアウトの正常系と異常系 |
+| test_tracks.py | 未ログインのアクセス制御、CRUD正常系、バリデーション失敗、他ユーザーのデータ操作拒否 |
+| test_score.py | BPM・Key・Energy 各スコア計算、BPM差超過による除外ロジック |
+| test_api.py | 未認証リダイレクト、一覧取得、推薦レスポンスの構造確認 |
+| test_app.py | アプリ設定の読み込み、ユーザーごとのデータ分離 |
 
 ---
 
