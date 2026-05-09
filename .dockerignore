@@ -1,0 +1,14 @@
+.git
+.gitignore
+.dockerignore
+
+.env
+.venv
+__pycache__
+*.pyc
+.pytest_cache
+.DS_Store
+
+*.sqlite3
+*.db
+sandbox/
